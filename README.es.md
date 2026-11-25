@@ -64,9 +64,38 @@ barra de menú.
 1. **Permite Accesibilidad.** macOS lo pide la primera vez. Activa **GamepadMouse** en *Ajustes del
    Sistema → Privacidad y seguridad → Accesibilidad*. Sin esto la app no puede mover el puntero ni
    teclear. El ícono de la barra muestra ⚠️ mientras falte.
-2. **Conecta el control.** Para emparejar un DualSense, mantén **PS + Create** hasta que la barra de
-   luz parpadee y elígelo en *Ajustes del Sistema → Bluetooth*. También funciona con un cable USB-C
-   de datos.
+2. **Conecta el control.** La primera vez, emparéjalo por Bluetooth (abajo), o conecta un cable USB-C
+   de datos, que no necesita emparejarse.
+
+### Emparejar un DualSense por Bluetooth
+
+Solo se hace una vez. Después, presionar **PS** lo vuelve a conectar a la Mac.
+
+1. **Apaga el control.** Si tiene alguna luz encendida, mantén **PS** unos 10 segundos hasta que se
+   apague. Si hay un PS5 cerca y encendido, apágalo también, o el control se conectará a él.
+2. **Ponlo en modo de emparejamiento.** Mantén **Create** (el botón pequeño a la izquierda del
+   touchpad) y **PS** al mismo tiempo unos 3–5 segundos, hasta que la luz alrededor del touchpad
+   **parpadee rápido, de dos en dos**. Un pulso lento significa que intenta reconectarse a su último
+   dispositivo, no que se está emparejando: suelta, apágalo e inténtalo de nuevo.
+3. **Conéctalo en la Mac.** Abre *Ajustes del Sistema → Bluetooth*. **DualSense Wireless Controller**
+   aparece en *Dispositivos cercanos*; haz clic en **Conectar**. Si no aparece en un minuto, repite
+   el paso 2.
+4. **Listo.** La barra de luz se queda encendida y se prende la luz de jugador debajo del touchpad.
+   Con Gamepad Mouse abierto, la barra de luz se pone azul.
+
+<details>
+<summary><b>Problemas al emparejar</b></summary>
+
+- **No aparece en Bluetooth:** el modo de emparejamiento dura más o menos un minuto. Mantén
+  **Create + PS** otra vez y deja abierto *Ajustes del Sistema → Bluetooth* mientras parpadea.
+- **Ya estaba emparejado pero no se conecta:** en *Ajustes del Sistema → Bluetooth*, haz clic en ⓘ
+  junto al control, elige **Olvidar este dispositivo** y emparéjalo de nuevo.
+- **También juegas en un PS5:** el control recuerda una consola o computadora a la vez. Después de
+  usarlo en el PS5 (o de conectarlo ahí por cable), emparéjalo con la Mac otra vez.
+- **Sin Bluetooth:** un cable USB-C de datos lo conecta al momento y lo carga al mismo tiempo. El
+  micrófono solo funciona por cable.
+
+</details>
 
 ## Temas
 

@@ -54,7 +54,7 @@
     border: 1px solid var(--border); box-shadow: var(--shadow); }
   .shot img { display: block; width: 100%; height: auto; }
 
-  section { padding: 56px 0; }
+  section { padding: 56px 0; scroll-margin-top: 56px; }
   section h2 { font-size: 30px; letter-spacing: -.01em; margin: 0 0 8px; }
   section p.sub { color: var(--muted); margin: 0 0 28px; max-width: 720px; }
 
@@ -111,6 +111,7 @@
     <nav>
       <a href="#features"><span lang="en">Features</span><span lang="es">Funciones</span></a>
       <a href="#install"><span lang="en">Install</span><span lang="es">Instalar</span></a>
+      <a href="#pair"><span lang="en">Pairing</span><span lang="es">Emparejar</span></a>
       <a href="#themes"><span lang="en">Themes</span><span lang="es">Temas</span></a>
       <a href="#touchpad">Touchpad</a>
       <a href="#how"><span lang="en">How it works</span><span lang="es">Cómo funciona</span></a>
@@ -193,9 +194,39 @@ cd gamepad-mouse
         </div>
         <div class="step">
           <h3><span lang="en">Connect the controller</span><span lang="es">Conecta el control</span></h3>
-          <p><span lang="en">Hold <b>PS + Create</b> until the light blinks and pair it in System Settings → Bluetooth, or plug in a USB-C cable. The light bar turns blue when it's ready.</span><span lang="es">Mantén <b>PS + Create</b> hasta que la luz parpadee y emparéjalo en Ajustes del Sistema → Bluetooth, o conecta un cable USB-C. La barra de luz se pone azul cuando está listo.</span></p>
+          <p><span lang="en">Pair it over Bluetooth the first time (<a href="#pair">see how</a>), or plug in a USB-C data cable. The light bar turns blue when it's ready.</span><span lang="es">La primera vez, emparéjalo por Bluetooth (<a href="#pair">mira cómo</a>), o conecta un cable USB-C de datos. La barra de luz se pone azul cuando está listo.</span></p>
         </div>
       </div>
+    </div>
+  </section>
+
+  <section id="pair">
+    <div class="wrap">
+      <h2><span lang="en">Pair your controller over Bluetooth</span><span lang="es">Empareja tu control por Bluetooth</span></h2>
+      <p class="sub"><span lang="en">Only the first time. After that, pressing PS reconnects it to the Mac.</span><span lang="es">Solo la primera vez. Después, presionar PS lo vuelve a conectar a la Mac.</span></p>
+      <div class="steps">
+        <div class="step">
+          <h3><span lang="en">Turn the controller off</span><span lang="es">Apaga el control</span></h3>
+          <p><span lang="en">If any light is on, hold <b>PS</b> for about 10 seconds until it goes out. Turn off any PS5 nearby too, or the controller connects to it instead.</span><span lang="es">Si tiene alguna luz encendida, mantén <b>PS</b> unos 10 segundos hasta que se apague. Apaga también cualquier PS5 cercano, o el control se conectará a él.</span></p>
+        </div>
+        <div class="step">
+          <h3><span lang="en">Hold Create + PS</span><span lang="es">Mantén Create + PS</span></h3>
+          <p><span lang="en">Hold <b>Create</b> (left of the touchpad) and <b>PS</b> together for 3–5 seconds, until the light around the touchpad <b>blinks quickly, twice at a time</b>. A slow pulse isn't pairing mode: let go, turn it off and try again.</span><span lang="es">Mantén <b>Create</b> (a la izquierda del touchpad) y <b>PS</b> juntos de 3 a 5 segundos, hasta que la luz alrededor del touchpad <b>parpadee rápido, de dos en dos</b>. Un pulso lento no es el modo de emparejamiento: suelta, apágalo e inténtalo otra vez.</span></p>
+        </div>
+        <div class="step">
+          <h3><span lang="en">Connect it on the Mac</span><span lang="es">Conéctalo en la Mac</span></h3>
+          <p><span lang="en">In System Settings → Bluetooth, <b>DualSense Wireless Controller</b> appears under Nearby Devices. Click <b>Connect</b>. The light bar stays on and the player light lights up.</span><span lang="es">En Ajustes del Sistema → Bluetooth, <b>DualSense Wireless Controller</b> aparece en Dispositivos cercanos. Haz clic en <b>Conectar</b>. La barra de luz se queda encendida y se prende la luz de jugador.</span></p>
+        </div>
+      </div>
+      <details style="margin-top:16px">
+        <summary><span lang="en">It doesn't show up, or won't connect</span><span lang="es">No aparece o no se conecta</span></summary>
+        <ul>
+          <li><span lang="en">Pairing mode lasts about a minute. Hold Create + PS again with Bluetooth settings open.</span><span lang="es">El modo de emparejamiento dura más o menos un minuto. Mantén Create + PS otra vez con los ajustes de Bluetooth abiertos.</span></li>
+          <li><span lang="en">Paired before but won't connect: click ⓘ next to it in Bluetooth settings, choose <b>Forget This Device</b>, and pair again.</span><span lang="es">Ya estaba emparejado pero no se conecta: haz clic en ⓘ junto a él en los ajustes de Bluetooth, elige <b>Olvidar este dispositivo</b> y emparéjalo de nuevo.</span></li>
+          <li><span lang="en">The controller remembers one console or computer at a time. After using it on a PS5, pair it with the Mac again.</span><span lang="es">El control recuerda una consola o computadora a la vez. Después de usarlo en un PS5, emparéjalo con la Mac otra vez.</span></li>
+          <li><span lang="en">A USB-C data cable connects it right away, no pairing needed, and charges it.</span><span lang="es">Un cable USB-C de datos lo conecta al momento, sin emparejar, y lo carga.</span></li>
+        </ul>
+      </details>
     </div>
   </section>
 

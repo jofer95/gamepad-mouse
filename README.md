@@ -62,8 +62,38 @@ icon in the menu bar.
 1. **Allow Accessibility.** macOS asks the first time. Turn on **GamepadMouse** in *System Settings →
    Privacy & Security → Accessibility*. Without it the app can't move the pointer or type. The menu
    bar icon shows ⚠️ until it's allowed.
-2. **Connect the controller.** To pair a DualSense, hold **PS + Create** until the light bar blinks,
-   then pick it in *System Settings → Bluetooth*. A USB-C data cable works too.
+2. **Connect the controller.** Pair it over Bluetooth the first time (below), or plug in a USB-C data
+   cable, which needs no pairing.
+
+### Pair a DualSense over Bluetooth
+
+You only do this once. After that, pressing **PS** reconnects it to the Mac.
+
+1. **Turn the controller off.** If any light is on, hold **PS** for about 10 seconds until it goes
+   out. If a PS5 is nearby and on, turn it off too, or the controller connects to it instead.
+2. **Put it in pairing mode.** Hold **Create** (the small button left of the touchpad) and **PS**
+   together for about 3–5 seconds, until the light around the touchpad **blinks quickly, twice at a
+   time**. A slow pulse means it's trying to reconnect to its last device, not pairing: let go, turn
+   it off and try again.
+3. **Connect it on the Mac.** Open *System Settings → Bluetooth*. **DualSense Wireless Controller**
+   appears under *Nearby Devices*; click **Connect**. If it doesn't show up within a minute, repeat
+   step 2.
+4. **Done.** The light bar stays on and the player light under the touchpad lights up. With Gamepad
+   Mouse running, the light bar turns blue.
+
+<details>
+<summary><b>Pairing problems</b></summary>
+
+- **It doesn't show up in Bluetooth:** pairing mode only lasts about a minute. Hold **Create + PS**
+  again and keep *System Settings → Bluetooth* open while it blinks.
+- **It was paired before but won't connect:** in *System Settings → Bluetooth*, click ⓘ next to
+  the controller, choose **Forget This Device**, and pair it again.
+- **You also play on a PS5:** the controller remembers one console or computer at a time. After
+  using it on the PS5 (or connecting it there by cable), pair it with the Mac again.
+- **No Bluetooth needed:** a USB-C data cable connects it right away, and it charges at the same
+  time. The microphone only works over the cable.
+
+</details>
 
 ## Themes
 
