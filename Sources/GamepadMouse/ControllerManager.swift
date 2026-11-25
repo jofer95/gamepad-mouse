@@ -6,10 +6,10 @@ final class ControllerManager {
     private(set) var controller: GCController?
     var onChange: (() -> Void)?
     private var observers: [NSObjectProtocol] = []
-    private let dualSenseBattery = DualSenseBattery()
+    private let dualSense = DualSenseHID()
 
     init() {
-        dualSenseBattery.onChange = { [weak self] in self?.onChange?() }
+        dualSense.onBatteryChange = { [weak self] in self?.onChange?() }
 
         // Without this, macOS only delivers controller input while our app is frontmost,
         // and a menu bar app never is.
@@ -29,25 +29,37 @@ final class ControllerManager {
 
     var name: String? { controller?.vendorName ?? controller?.productCategory }
 
+    /// The finger on the DualSense touchpad, if any.
+    var touch: DualSenseHID.Touch? { controller == nil ? nil : dualSense.touch }
+
     var batteryDescription: String? {
         guard controller != nil else { return nil }
         // macOS reports the DualSense over Bluetooth as unknown with level 0, which isn't a
         // reading, so ask the controller itself first.
-        if let reading = dualSenseBattery.reading {
+        if let reading = dualSense.battery {
             switch reading.state {
-            case .charging: return "🔋 \(reading.percent)% (cargando)"
-            case .full: return "🔋 100% (cargada)"
-            case .error: return "🔋 error de carga"
-            case .discharging:
-                return reading.percent <= 15 ? "🪫 \(reading.percent)% (batería baja)" : "🔋 \(reading.percent)%"
+            case .charging: return "⚡️ " + tr("Charging", "Cargando")
+            case .full: return "🔋 " + tr("Battery full", "Batería completa")
+            case .error: return "⚠️ " + tr("Charging error", "Error de carga")
+            case .discharging: return Self.describe(level: reading.level)
             }
         }
         guard let battery = controller?.battery, battery.batteryState != .unknown else { return nil }
-        let percent = Int((battery.batteryLevel * 100).rounded())
         switch battery.batteryState {
-        case .charging: return "🔋 \(percent)% (cargando)"
-        case .full: return "🔋 100% (cargada)"
-        default: return "🔋 \(percent)%"
+        case .charging: return "⚡️ " + tr("Charging", "Cargando")
+        case .full: return "🔋 " + tr("Battery full", "Batería completa")
+        default: return Self.describe(level: Int(battery.batteryLevel * 10))
+        }
+    }
+
+    /// The controller only reports tenths, so the menu says it in words, not a fake percent.
+    private static func describe(level: Int) -> String {
+        switch level {
+        case 8...: return "🔋 " + tr("Battery high", "Batería alta")
+        case 6...7: return "🔋 " + tr("Battery medium-high", "Batería alta media")
+        case 4...5: return "🔋 " + tr("Battery medium", "Batería media")
+        case 2...3: return "🔋 " + tr("Battery medium-low", "Batería media baja")
+        default: return "🪫 " + tr("Battery low", "Batería baja")
         }
     }
 

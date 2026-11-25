@@ -21,16 +21,16 @@ struct ShortcutRecorder: View {
                 .foregroundStyle(recording ? Color.accentColor : (isEmpty ? .secondary : .primary))
         }
         .help(allowModifiersOnly
-              ? "Haz clic y presiona las teclas a mantener, por ejemplo ⇧⌃ para Wispr Flow"
-              : "Haz clic y presiona el atajo")
+              ? tr("Click, then press the keys to hold, like ⇧⌃ for Wispr Flow", "Haz clic y presiona las teclas a mantener, por ejemplo ⇧⌃ para Wispr Flow")
+              : tr("Click, then press the shortcut", "Haz clic y presiona el atajo"))
         .onDisappear(perform: stop)
     }
 
     private var isEmpty: Bool { key == nil && modifiers.isEmpty }
 
     private var label: String {
-        if recording { return "Presiona las teclas…" }
-        return isEmpty ? "Grabar atajo" : KeyCodes.display(key: key, modifiers: modifiers)
+        if recording { return tr("Press the keys…", "Presiona las teclas…") }
+        return isEmpty ? tr("Record shortcut", "Grabar atajo") : KeyCodes.display(key: key, modifiers: modifiers)
     }
 
     private func start() {

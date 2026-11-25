@@ -16,6 +16,14 @@
     <string>0.1.0</string>
     <key>CFBundleVersion</key>
     <string>1</string>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>en</string>
+    <!-- Lets System Settings → Language & Region → Applications pick a language for this app. -->
+    <key>CFBundleLocalizations</key>
+    <array>
+        <string>en</string>
+        <string>es</string>
+    </array>
     <key>LSMinimumSystemVersion</key>
     <string>13.0</string>
     <key>LSUIElement</key>

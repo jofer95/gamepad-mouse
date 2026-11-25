@@ -13,9 +13,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     private let controllerItem = NSMenuItem(title: "", action: nil, keyEquivalent: "")
     private let accessibilityItem = NSMenuItem(title: "", action: #selector(openAccessibilitySettings), keyEquivalent: "")
-    private let enabledItem = NSMenuItem(title: "Activado", action: #selector(toggleEnabled), keyEquivalent: "e")
-    private let themesItem = NSMenuItem(title: "Tema", action: nil, keyEquivalent: "")
-    private let loginItem = NSMenuItem(title: "Abrir al iniciar sesión", action: #selector(toggleLoginItem), keyEquivalent: "")
+    private let enabledItem = NSMenuItem(title: tr("Enabled", "Activado"), action: #selector(toggleEnabled), keyEquivalent: "e")
+    private let themesItem = NSMenuItem(title: tr("Theme", "Tema"), action: nil, keyEquivalent: "")
+    private let loginItem = NSMenuItem(title: tr("Open at Login", "Abrir al iniciar sesión"), action: #selector(toggleLoginItem), keyEquivalent: "")
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         let config: Config
@@ -77,14 +77,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         menu.addItem(enabledItem)
         themesItem.submenu = NSMenu()
         menu.addItem(themesItem)
-        menu.addItem(item("Configurar botones…", #selector(openSettings), ","))
+        menu.addItem(item(tr("Configure Buttons…", "Configurar botones…"), #selector(openSettings), ","))
         menu.addItem(.separator())
-        menu.addItem(item("Editar archivo JSON…", #selector(openConfigFile), ""))
-        menu.addItem(item("Recargar archivo JSON", #selector(reloadConfig), "r"))
+        menu.addItem(item(tr("Edit JSON File…", "Editar archivo JSON…"), #selector(openConfigFile), ""))
+        menu.addItem(item(tr("Reload JSON File", "Recargar archivo JSON"), #selector(reloadConfig), "r"))
         menu.addItem(.separator())
         loginItem.target = self
         menu.addItem(loginItem)
-        menu.addItem(item("Salir de Gamepad Mouse", #selector(quit), "q"))
+        menu.addItem(item(tr("Quit Gamepad Mouse", "Salir de Gamepad Mouse"), #selector(quit), "q"))
         return menu
     }
 
@@ -100,14 +100,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         guard let submenu = themesItem.submenu else { return }
         submenu.removeAllItems()
         for theme in store.config.themes {
-            let item = NSMenuItem(title: theme.name.isEmpty ? "Sin nombre" : theme.name,
+            let item = NSMenuItem(title: theme.displayName,
                                   action: #selector(selectTheme(_:)), keyEquivalent: "")
             item.target = self
             item.representedObject = theme.id
             item.state = theme.id == store.config.activeThemeID ? .on : .off
             submenu.addItem(item)
         }
-        themesItem.title = "Tema: \(store.activeTheme.name)"
+        themesItem.title = tr("Theme", "Tema") + ": \(store.activeTheme.displayName)"
     }
 
     private func refreshStatus() {
@@ -118,11 +118,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             let battery = controllers.batteryDescription.map { " · \($0)" } ?? ""
             controllerItem.title = "\(name)\(battery)"
         } else {
-            controllerItem.title = "No hay control conectado"
+            controllerItem.title = tr("No controller connected", "No hay control conectado")
         }
         accessibilityItem.title = trusted
-            ? "Accesibilidad: permitida"
-            : "⚠️ Permitir acceso de Accesibilidad…"
+            ? tr("Accessibility: allowed", "Accesibilidad: permitida")
+            : "⚠️ " + tr("Allow Accessibility Access…", "Permitir acceso de Accesibilidad…")
         accessibilityItem.isEnabled = !trusted
         enabledItem.state = engine.enabled ? .on : .off
         loginItem.state = SMAppService.mainApp.status == .enabled ? .on : .off
@@ -182,7 +182,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 try SMAppService.mainApp.register()
             }
         } catch {
-            showAlert("No se pudo cambiar Abrir al iniciar sesión", error.localizedDescription)
+            showAlert(tr("Couldn't change Open at Login", "No se pudo cambiar Abrir al iniciar sesión"), error.localizedDescription)
         }
         refreshStatus()
     }
@@ -204,8 +204,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     private func showConfigError(_ error: Error) {
-        showAlert("No se pudo leer la configuración",
-                  "\(Config.fileURL.path)\n\n\(error)\n\nSe sigue usando la configuración anterior.")
+        showAlert(tr("Couldn't read the config", "No se pudo leer la configuración"),
+                  "\(Config.fileURL.path)\n\n\(error)\n\n" + tr("The previous settings are still in use.", "Se sigue usando la configuración anterior."))
     }
 
     private func showAlert(_ title: String, _ message: String) {

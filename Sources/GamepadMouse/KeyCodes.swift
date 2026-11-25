@@ -52,7 +52,7 @@ enum KeyCodes {
         let mods = normalized(modifiers).compactMap { symbols[$0] }.joined()
         guard let key = key?.lowercased() else { return mods.trimmingCharacters(in: .whitespaces) }
         let keySymbols: [String: String] = [
-            "return": "↩", "enter": "↩", "tab": "⇥", "space": "Espacio", "delete": "⌫", "backspace": "⌫",
+            "return": "↩", "enter": "↩", "tab": "⇥", "space": tr("Space", "Espacio"), "delete": "⌫", "backspace": "⌫",
             "forwarddelete": "⌦", "escape": "⎋", "esc": "⎋", "up": "↑", "down": "↓", "left": "←", "right": "→",
             "home": "↖", "end": "↘", "pageup": "⇞", "pagedown": "⇟",
         ]

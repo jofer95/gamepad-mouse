@@ -10,23 +10,23 @@ enum PadButton: String, Codable, CaseIterable {
 
     var title: String {
         switch self {
-        case .cross: return "✕  Cruz"
-        case .circle: return "○  Círculo"
-        case .square: return "□  Cuadrado"
-        case .triangle: return "△  Triángulo"
+        case .cross: return "✕  " + tr("Cross", "Cruz")
+        case .circle: return "○  " + tr("Circle", "Círculo")
+        case .square: return "□  " + tr("Square", "Cuadrado")
+        case .triangle: return "△  " + tr("Triangle", "Triángulo")
         case .l1: return "L1"
         case .r1: return "R1"
         case .l2: return "L2"
         case .r2: return "R2"
         case .l3: return "L3"
         case .r3: return "R3"
-        case .dpadUp: return "↑  Arriba"
-        case .dpadDown: return "↓  Abajo"
-        case .dpadLeft: return "←  Izquierda"
-        case .dpadRight: return "→  Derecha"
+        case .dpadUp: return "↑  " + tr("Up", "Arriba")
+        case .dpadDown: return "↓  " + tr("Down", "Abajo")
+        case .dpadLeft: return "←  " + tr("Left", "Izquierda")
+        case .dpadRight: return "→  " + tr("Right", "Derecha")
         case .options: return "Options"
         case .create: return "Create"
-        case .ps: return "Botón PS"
+        case .ps: return tr("PS button", "Botón PS")
         case .touchpad: return "Touchpad"
         }
     }
@@ -34,25 +34,27 @@ enum PadButton: String, Codable, CaseIterable {
     var detail: String? {
         switch self {
         case .l1, .r1: return "Bumper"
-        case .l2, .r2: return "Gatillo"
-        case .l3: return "Clic del stick izquierdo"
-        case .r3: return "Clic del stick derecho"
-        case .options: return "Derecha del touchpad (≡)"
-        case .create: return "Izquierda del touchpad"
-        case .touchpad: return "Clic en el centro del touchpad"
-        case .ps: return "Logo de PlayStation"
+        case .l2, .r2: return tr("Trigger", "Gatillo")
+        case .l3: return tr("Left stick click", "Clic del stick izquierdo")
+        case .r3: return tr("Right stick click", "Clic del stick derecho")
+        case .options: return tr("Right of the touchpad (≡)", "Derecha del touchpad (≡)")
+        case .create: return tr("Left of the touchpad", "Izquierda del touchpad")
+        case .touchpad: return tr("Click in the middle of the touchpad", "Clic en el centro del touchpad")
+        case .ps: return tr("PlayStation logo", "Logo de PlayStation")
         default: return nil
         }
     }
 
     /// Buttons grouped as they sit on the controller, for the settings window.
-    static let groups: [(title: String, buttons: [PadButton])] = [
-        ("Botones frontales", [.cross, .circle, .square, .triangle]),
-        ("Centro", [.create, .touchpad, .options, .ps]),
-        ("Bumpers y gatillos", [.l1, .r1, .l2, .r2]),
-        ("D-pad", [.dpadUp, .dpadDown, .dpadLeft, .dpadRight]),
-        ("Sticks", [.l3, .r3]),
-    ]
+    static var groups: [(title: String, buttons: [PadButton])] {
+        [
+            (tr("Face buttons", "Botones frontales"), [.cross, .circle, .square, .triangle]),
+            (tr("Center", "Centro"), [.create, .touchpad, .options, .ps]),
+            (tr("Bumpers and triggers", "Bumpers y gatillos"), [.l1, .r1, .l2, .r2]),
+            ("D-pad", [.dpadUp, .dpadDown, .dpadLeft, .dpadRight]),
+            ("Sticks", [.l3, .r3]),
+        ]
+    }
 }
 
 enum ActionType: String, Codable, CaseIterable, Identifiable {
@@ -78,17 +80,17 @@ enum ActionType: String, Codable, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .none: return "Sin acción"
-        case .leftClick: return "Clic izquierdo"
-        case .rightClick: return "Clic derecho"
-        case .middleClick: return "Clic central"
-        case .shortcut: return "Atajo de teclado"
-        case .holdKey: return "Mantener teclas (dictado)"
-        case .precision: return "Modo precisión"
+        case .none: return tr("No action", "Sin acción")
+        case .leftClick: return tr("Left click", "Clic izquierdo")
+        case .rightClick: return tr("Right click", "Clic derecho")
+        case .middleClick: return tr("Middle click", "Clic central")
+        case .shortcut: return tr("Keyboard shortcut", "Atajo de teclado")
+        case .holdKey: return tr("Hold keys (dictation)", "Mantener teclas (dictado)")
+        case .precision: return tr("Precision mode", "Modo precisión")
         case .missionControl: return "Mission Control"
-        case .appWindows: return "Ventanas de la app"
-        case .toggleEnabled: return "Pausar / reanudar"
-        case .nextTheme: return "Siguiente tema"
+        case .appWindows: return tr("App windows", "Ventanas de la app")
+        case .toggleEnabled: return tr("Pause / resume", "Pausar / reanudar")
+        case .nextTheme: return tr("Next theme", "Siguiente tema")
         }
     }
 }
@@ -109,41 +111,92 @@ struct Action: Codable, Equatable {
     static let dictate = Action(type: .holdKey, modifiers: ["shift", "ctrl"])
 }
 
+/// What sliding a finger on the DualSense touchpad does.
+enum TouchpadMode: String, Codable, CaseIterable, Identifiable {
+    case none
+    /// Moves the pointer, like a laptop trackpad.
+    case pointer
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .none: return tr("Nothing", "No hace nada")
+        case .pointer: return tr("Moves the pointer", "Mueve el puntero")
+        }
+    }
+}
+
 /// A named set of button mappings. Pointer and scroll settings are shared by all themes.
 struct Theme: Codable, Equatable, Identifiable {
     var id: String
     var name: String
     var buttons: [String: Action]
+    /// Missing in themes saved before the touchpad could move the pointer.
+    var touchpad: TouchpadMode? = nil
 
     func action(for button: PadButton) -> Action {
         buttons[button.rawValue] ?? .of(.none)
     }
 
-    var isBuiltIn: Bool { Theme.builtIns.contains { $0.id == id } }
+    var touchpadMode: TouchpadMode { touchpad ?? .none }
 
-    static let classic = Theme(id: "classic", name: "A · Clásico", buttons: [
-        PadButton.r2.rawValue: .of(.leftClick),
-        PadButton.l2.rawValue: .of(.rightClick),
-        PadButton.l1.rawValue: .shortcut("[", ["cmd"]),          // Back
-        PadButton.r1.rawValue: .shortcut("]", ["cmd"]),          // Forward
-        PadButton.circle.rawValue: .shortcut("w", ["cmd"]),      // Close window/tab
-        PadButton.cross.rawValue: .dictate,
-        PadButton.triangle.rawValue: .shortcut("return"),
-        PadButton.square.rawValue: .of(.precision),
-        PadButton.dpadUp.rawValue: .shortcut("up", repeat: true),
-        PadButton.dpadDown.rawValue: .shortcut("down", repeat: true),
-        PadButton.dpadLeft.rawValue: .shortcut("left", repeat: true),
-        PadButton.dpadRight.rawValue: .shortcut("right", repeat: true),
-        PadButton.create.rawValue: .shortcut("escape"),
-        PadButton.options.rawValue: .shortcut("tab", ["cmd"]),   // Switch to the last app
-        PadButton.touchpad.rawValue: .of(.leftClick),
-        PadButton.r3.rawValue: .of(.middleClick),
-        PadButton.l3.rawValue: .of(.none),
-        PadButton.ps.rawValue: .of(.toggleEnabled),
-    ])
+    var isBuiltIn: Bool { Theme.builtInIDs.contains(id) }
+
+    /// A built-in theme keeps its name in the Mac's language until it's renamed.
+    var displayName: String {
+        if let names = Theme.builtInNames[id], name == names.english || name == names.spanish {
+            return tr(names.english, names.spanish)
+        }
+        return name.isEmpty ? tr("Untitled", "Sin nombre") : name
+    }
+
+    private static let builtInNames: [String: (english: String, spanish: String)] = [
+        "classic": ("A · Classic", "A · Clásico"),
+        "b": ("B · Clicks on buttons", "B · Clics en botones"),
+        "c": ("C · Touchpad as mouse", "C · Touchpad como mouse"),
+    ]
+    private static let builtInIDs: Set<String> = ["classic", "b", "c"]
+
+    private static func builtInName(_ id: String) -> String {
+        let names = builtInNames[id]!
+        return tr(names.english, names.spanish)
+    }
+
+    static var classic: Theme {
+        Theme(id: "classic", name: builtInName("classic"), buttons: [
+            PadButton.r2.rawValue: .of(.leftClick),
+            PadButton.l2.rawValue: .of(.rightClick),
+            PadButton.l1.rawValue: .shortcut("[", ["cmd"]),          // Back
+            PadButton.r1.rawValue: .shortcut("]", ["cmd"]),          // Forward
+            PadButton.circle.rawValue: .shortcut("w", ["cmd"]),      // Close window/tab
+            PadButton.cross.rawValue: .dictate,
+            PadButton.triangle.rawValue: .shortcut("return"),
+            PadButton.square.rawValue: .of(.precision),
+            PadButton.dpadUp.rawValue: .shortcut("up", repeat: true),
+            PadButton.dpadDown.rawValue: .shortcut("down", repeat: true),
+            PadButton.dpadLeft.rawValue: .shortcut("left", repeat: true),
+            PadButton.dpadRight.rawValue: .shortcut("right", repeat: true),
+            PadButton.create.rawValue: .shortcut("escape"),
+            PadButton.options.rawValue: .shortcut("tab", ["cmd"]),   // Switch to the last app
+            PadButton.touchpad.rawValue: .of(.leftClick),
+            PadButton.r3.rawValue: .of(.middleClick),
+            PadButton.l3.rawValue: .of(.none),
+            PadButton.ps.rawValue: .of(.toggleEnabled),
+        ])
+    }
 
     /// Clicks on the face buttons, dictation on the touchpad, triggers free.
-    static let faceClicks = Theme(id: "b", name: "B · Clics en botones", buttons: [
+    static var faceClicks: Theme {
+        Theme(id: "b", name: builtInName("b"), buttons: faceClickButtons)
+    }
+
+    /// Theme B's buttons, plus the touchpad moving the pointer.
+    static var touchpadMouse: Theme {
+        Theme(id: "c", name: builtInName("c"), buttons: faceClickButtons, touchpad: .pointer)
+    }
+
+    private static let faceClickButtons: [String: Action] = [
         PadButton.cross.rawValue: .of(.leftClick),
         PadButton.circle.rawValue: .of(.leftClick),
         PadButton.square.rawValue: .of(.rightClick),
@@ -162,9 +215,9 @@ struct Theme: Codable, Equatable, Identifiable {
         PadButton.r3.rawValue: .of(.middleClick),
         PadButton.l3.rawValue: .of(.none),
         PadButton.ps.rawValue: .of(.toggleEnabled),
-    ])
+    ]
 
-    static let builtIns = [classic, faceClicks]
+    static var builtIns: [Theme] { [classic, faceClicks, touchpadMouse] }
 }
 
 struct Settings: Codable, Equatable {
@@ -183,6 +236,8 @@ struct Settings: Codable, Equatable {
     var deadzone = 0.12
     /// `left` or `right`: which stick moves the pointer. The other one scrolls.
     var pointerStick = "left"
+    /// Multiplier for the touchpad pointer. Fast swipes are accelerated on top of it.
+    var touchpadSpeed = 1.0
 
     init() {}
 
@@ -198,12 +253,13 @@ struct Settings: Codable, Equatable {
         precisionFactor = try c.decodeIfPresent(Double.self, forKey: .precisionFactor) ?? d.precisionFactor
         deadzone = try c.decodeIfPresent(Double.self, forKey: .deadzone) ?? d.deadzone
         pointerStick = try c.decodeIfPresent(String.self, forKey: .pointerStick) ?? d.pointerStick
+        touchpadSpeed = try c.decodeIfPresent(Double.self, forKey: .touchpadSpeed) ?? d.touchpadSpeed
     }
 }
 
 struct Config: Codable, Equatable {
     var settings = Settings()
-    var activeThemeID = Theme.classic.id
+    var activeThemeID = "classic"
     var themes = Theme.builtIns
 
     var activeTheme: Theme {
@@ -221,7 +277,7 @@ struct Config: Codable, Equatable {
         settings = try c.decodeIfPresent(Settings.self, forKey: .settings) ?? Settings()
 
         if let saved = try c.decodeIfPresent([Theme].self, forKey: .themes), !saved.isEmpty {
-            // Built-in themes can't be deleted, so bring back any that went missing.
+            // Built-in themes can't be deleted, and new ones arrive with updates, so add any missing.
             themes = saved + Theme.builtIns.filter { builtIn in !saved.contains { $0.id == builtIn.id } }
             let active = try c.decodeIfPresent(String.self, forKey: .activeThemeID)
             activeThemeID = themes.contains { $0.id == active } ? active! : themes[0].id
@@ -231,9 +287,9 @@ struct Config: Codable, Equatable {
             let merged = Theme.classic.buttons.merging(old) { _, new in new }
             themes = Theme.builtIns
             if merged != Theme.classic.buttons {
-                themes.append(Theme(id: UUID().uuidString, name: "Mi configuración", buttons: merged))
+                themes.append(Theme(id: UUID().uuidString, name: tr("My setup", "Mi configuración"), buttons: merged))
             }
-            activeThemeID = Theme.faceClicks.id
+            activeThemeID = "b"
         }
 
         for theme in themes {

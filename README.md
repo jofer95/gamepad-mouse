@@ -27,9 +27,22 @@ La primera vez:
 
 La barra de luz del control se pone **azul** cuando el mapeo está activo y **naranja** en pausa.
 
+El menú muestra la batería del control en palabras (completa, cargando, alta, alta media, media, media
+baja, baja), porque el control solo la reporta en pasos de 10%. La app la lee directo del control:
+macOS no la conoce por Bluetooth.
+
+## Idioma
+
+La app sale en inglés o español según el idioma de tu Mac: toma el primero de los dos que aparezca en
+*Ajustes del Sistema → General → Idioma y región*. Para usar otro solo en esta app, agrégala en
+**Aplicaciones** dentro de esa misma pantalla y elige su idioma. Los temas que renombres conservan tu
+nombre en cualquier idioma.
+
 ## Temas
 
-Un tema es un mapeo completo de los botones. Vienen dos, y puedes crear los tuyos:
+Un tema es un mapeo completo de los botones. Vienen tres, y puedes crear los tuyos. El tema **C ·
+Touchpad como mouse** tiene los mismos botones que B, y además deslizar el dedo en el touchpad
+mueve el puntero.
 
 | Control | A · Clásico | B · Clics en botones |
 |---|---|---|
@@ -51,6 +64,13 @@ Un tema es un mapeo completo de los botones. Vienen dos, y puedes crear los tuyo
 | R3 | Clic central | Clic central |
 | L3 | Sin acción | Sin acción |
 | PS | Pausar / reanudar | Pausar / reanudar |
+
+### Touchpad como mouse (tema C)
+
+Desliza el dedo en el touchpad como en un trackpad: lento para movimientos finos, rápido para cruzar
+la pantalla (tiene aceleración, porque el área es chica). Apoyar el dedo no mueve el puntero; solo
+cuenta lo que deslizas. El clic del touchpad sigue siendo un botón aparte. La velocidad se ajusta en
+**Configurar botones…**, y cualquier tema puede activarlo en la sección **Touchpad**.
 
 Los clics se mantienen mientras sostienes el botón, así que también sirven para arrastrar. Dos
 pulsaciones rápidas cuentan como doble clic. Dictar mantiene `⇧⌃`, el push-to-talk de Wispr Flow.
@@ -85,11 +105,12 @@ configuración anterior.
 ```json
 {
   "activeThemeID": "b",
-  "settings": { "pointerMaxSpeed": 1600, "pointerCurve": 2.2, "deadzone": 0.12 },
+  "settings": { "pointerMaxSpeed": 1600, "pointerCurve": 2.2, "deadzone": 0.12, "touchpadSpeed": 1.0 },
   "themes": [
     {
       "id": "b",
       "name": "B · Clics en botones",
+      "touchpad": "none",
       "buttons": {
         "cross":    { "type": "leftClick" },
         "create":   { "type": "shortcut", "key": "w", "modifiers": ["cmd"] },
@@ -107,6 +128,7 @@ configuración anterior.
 - **Acciones (`type`):** `leftClick`, `rightClick`, `middleClick`, `shortcut` (`key` + `modifiers`,
   `repeat` opcional), `holdKey` (mantiene `key` y/o `modifiers`), `precision`, `toggleEnabled`,
   `nextTheme`, `missionControl`, `appWindows`, `none`.
+- **Touchpad (`touchpad`):** `none` o `pointer` (deslizar mueve el puntero).
 - **Modificadores:** `cmd`, `shift`, `option`, `ctrl`, `fn`.
 - **Teclas:** letras, números, `return`, `tab`, `space`, `delete`, `escape`, `up`/`down`/`left`/`right`,
   `home`, `end`, `pageup`, `pagedown`, `f1`–`f12` y signos como `[`, `]`, `,`, `.`, `/`.
@@ -124,6 +146,8 @@ configuración anterior.
 | `Sources/GamepadMouse/Engine.swift` | Bucle de 120 Hz: botones → acciones, sticks → puntero y scroll |
 | `Sources/GamepadMouse/InputSynthesizer.swift` | Publica los eventos de mouse, scroll y teclado |
 | `Sources/GamepadMouse/SystemActions.swift` | Abre Mission Control y las ventanas de la app |
+| `Sources/GamepadMouse/DualSenseHID.swift` | Lee del control la batería y el dedo en el touchpad |
+| `Sources/GamepadMouse/L10n.swift` | Inglés o español según el idioma de la Mac |
 | `Sources/GamepadMouse/ControllerManager.swift` | Conexión del control, lectura, batería y luz |
 | `Sources/GamepadMouse/Config.swift` | Botones, acciones, temas A y B, formato del archivo |
 | `Sources/GamepadMouse/ConfigStore.swift` | Config en vivo: cambios de tema y de botones, guardado |
@@ -134,5 +158,5 @@ configuración anterior.
 ## Pendiente / ideas
 
 - Probar el Switch 2 Pro Controller (los botones van por posición: `cross` es el de abajo).
-- Usar el touchpad del DualSense como trackpad.
+- Gestos en el touchpad (deslizar para atrás/adelante o Mission Control) y scroll con dos dedos.
 - Perfiles por app (otro mapeo cuando estás en el navegador o en la terminal).

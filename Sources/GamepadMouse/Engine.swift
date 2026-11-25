@@ -30,6 +30,7 @@ final class Engine {
 
     private var pressed: Set<PadButton> = []
     private var reportedPressed: Set<PadButton> = []
+    private var lastTouch: DualSenseHID.Touch?
     /// The action each held button started, so its release matches even if the config changes.
     private var active: [PadButton: Action] = [:]
     private var nextRepeat: [PadButton: CFTimeInterval] = [:]
@@ -88,7 +89,10 @@ final class Engine {
         }
         reportPressed()
 
-        guard enabled else { return }
+        guard enabled else {
+            lastTouch = nil
+            return
+        }
         let settings = config.settings
         let precision = active.values.contains { $0.type == .precision } ? settings.precisionFactor : 1.0
         let pointerStick = settings.pointerStick == "right" ? sticks.right : sticks.left
@@ -105,6 +109,30 @@ final class Engine {
             let horizontal = settings.invertScrollHorizontal ? -v.x : v.x
             synth.scroll(dx: horizontal * speed, dy: vertical * speed)
         }
+
+        if config.activeTheme.touchpadMode == .pointer {
+            moveWithTouchpad(dt: dt, precision: precision)
+        } else {
+            lastTouch = nil
+        }
+    }
+
+    /// Moves the pointer by how far the finger slid since the last tick, like a trackpad.
+    /// A new touch only sets where the finger is, so putting it down never makes the pointer jump.
+    private func moveWithTouchpad(dt: Double, precision: Double) {
+        let touch = controllers.touch
+        defer { lastTouch = touch }
+        guard let touch, let last = lastTouch, last.id == touch.id else { return }
+        let dx = Double(touch.x - last.x)
+        let dy = Double(touch.y - last.y)
+        guard dx != 0 || dy != 0 else { return }
+
+        // The touchpad is 1920 units wide but only a few centimeters, so speed up fast swipes:
+        // slow ones move about 0.35 pt per unit for precision, quick ones up to 2.3.
+        let unitsPerSecond = hypot(dx, dy) / max(dt, 0.001)
+        let gain = (0.35 + 0.65 * min(unitsPerSecond / 1500, 3)) * config.settings.touchpadSpeed * precision
+        // The touchpad's y grows downward, like the screen's.
+        synth.movePointer(dx: dx * gain, dy: dy * gain)
     }
 
     /// Applies the radial deadzone and response curve. Returns nil inside the deadzone.
