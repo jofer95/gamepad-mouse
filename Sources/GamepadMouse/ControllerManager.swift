@@ -29,8 +29,8 @@ final class ControllerManager {
 
     var name: String? { controller?.vendorName ?? controller?.productCategory }
 
-    /// The finger on the DualSense touchpad, if any.
-    var touch: DualSenseHID.Touch? { controller == nil ? nil : dualSense.touch }
+    /// The fingers on the DualSense touchpad: none, one or two.
+    var touches: [DualSenseHID.Touch] { controller == nil ? [] : dualSense.touches }
 
     var batteryDescription: String? {
         guard controller != nil else { return nil }

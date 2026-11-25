@@ -144,8 +144,14 @@ private struct ButtonsForm: View {
                               value: Binding(get: { store.config.settings.touchpadSpeed },
                                              set: { store.config.settings.touchpadSpeed = $0 }),
                               range: 0.3...3, step: 0.1) { String(format: "%.1f×", $0) }
-                    Text(tr("Slide slowly for precision, quickly to cross the screen. Clicking the touchpad is its own button, below.",
-                            "Desliza lento para precisión y rápido para cruzar la pantalla. El clic del touchpad es un botón aparte, abajo."))
+                    SliderRow(title: tr("Pinch zoom sensitivity", "Sensibilidad del zoom"),
+                              value: Binding(get: { store.config.settings.pinchSensitivity },
+                                             set: { store.config.settings.pinchSensitivity = $0 }),
+                              range: 0.5...2.5, step: 0.1) { String(format: "%.1f×", $0) }
+                    SmoothZoomToggle(isOn: Binding(get: { store.config.settings.smoothZoom },
+                                                   set: { store.config.settings.smoothZoom = $0 }))
+                    Text(tr("One finger: slide slowly for precision, quickly to cross the screen. Two fingers: spread to zoom in, pinch to zoom out. Clicking the touchpad is its own button, below.",
+                            "Un dedo: desliza lento para precisión y rápido para cruzar la pantalla. Dos dedos: sepáralos para acercar y júntalos para alejar. El clic del touchpad es un botón aparte, abajo."))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -273,6 +279,9 @@ private struct MovementForm: View {
             Section("Touchpad") {
                 SliderRow(title: tr("Touchpad speed", "Velocidad del touchpad"), value: setting(\.touchpadSpeed),
                           range: 0.3...3, step: 0.1) { String(format: "%.1f×", $0) }
+                SliderRow(title: tr("Pinch zoom sensitivity", "Sensibilidad del zoom"), value: setting(\.pinchSensitivity),
+                          range: 0.5...2.5, step: 0.1) { String(format: "%.1f×", $0) }
+                SmoothZoomToggle(isOn: setting(\.smoothZoom))
             }
             Section(tr("General", "General")) {
                 SliderRow(title: tr("Precision mode speed", "Velocidad en modo precisión"), value: setting(\.precisionFactor),
@@ -295,6 +304,23 @@ private struct MovementForm: View {
     private func setting<Value>(_ keyPath: WritableKeyPath<Settings, Value>) -> Binding<Value> {
         Binding(get: { store.config.settings[keyPath: keyPath] },
                 set: { store.config.settings[keyPath: keyPath] = $0 })
+    }
+}
+
+private struct SmoothZoomToggle: View {
+    @Binding var isOn: Bool
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Toggle(tr("Smooth zoom, like the Mac trackpad", "Zoom suave, como el trackpad de la Mac"), isOn: $isOn)
+            Text(isOn
+                 ? tr("Works in apps that take trackpad pinches: Safari, Chrome, Preview, Maps, Photos. Turn it off for Terminal or VS Code.",
+                      "Funciona en apps que aceptan el pellizco del trackpad: Safari, Chrome, Vista Previa, Mapas, Fotos. Apágalo para la Terminal o VS Code.")
+                 : tr("Zooms in steps with ⌘= and ⌘-, which works in almost every app.",
+                      "Hace zoom por pasos con ⌘= y ⌘-, que funciona en casi todas las apps."))
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
     }
 }
 

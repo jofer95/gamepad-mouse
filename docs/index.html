@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="en" data-lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gamepad Mouse</title>
+<meta name="description" content="Use a PlayStation 5 controller as your Mac's mouse, scroll wheel and keyboard shortcuts.">
+<style>
+  :root {
+    --bg: #f7f7f9; --surface: #ffffff; --text: #16161a; --muted: #5d5d68; --border: #e3e3ea;
+    --accent: #3a5bff; --accent-soft: #e8edff; --code-bg: #f0f0f5;
+    --radius: 14px; --shadow: 0 1px 2px rgba(0,0,0,.04), 0 8px 24px rgba(0,0,0,.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #0e0e12; --surface: #17171d; --text: #ececf1; --muted: #a0a0ad; --border: #2a2a33;
+      --accent: #7b93ff; --accent-soft: #1d2340; --code-bg: #1f1f27; --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35); }
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+    font: 16px/1.6 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code, pre { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: .9em; }
+  code { background: var(--code-bg); padding: .1em .4em; border-radius: 6px; }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 16px; }
+
+  /* Language switch: only the chosen language's text shows. */
+  html[data-lang="en"] [lang="es"], html[data-lang="es"] [lang="en"] { display: none !important; }
+
+  header.top { position: sticky; top: 0; z-index: 10; backdrop-filter: saturate(180%) blur(14px);
+    background: color-mix(in srgb, var(--bg) 80%, transparent); border-bottom: 1px solid var(--border); }
+  header.top .wrap { display: flex; align-items: center; gap: 20px; height: 56px; }
+  .brand { font-weight: 700; color: var(--text); white-space: nowrap; }
+  nav { display: flex; gap: 18px; flex: 1; overflow-x: auto; scrollbar-width: none; }
+  nav a { color: var(--muted); font-size: 14px; white-space: nowrap; }
+  .lang-toggle { border: 1px solid var(--border); background: var(--surface); color: var(--text);
+    border-radius: 999px; padding: 4px 12px; font: inherit; font-size: 13px; cursor: pointer; }
+
+  .hero { padding-top: 72px; padding-bottom: 40px; text-align: center; }
+  .hero h1 { font-size: clamp(36px, 6vw, 60px); line-height: 1.05; margin: 0 0 16px; letter-spacing: -.02em; }
+  .hero h1 span.grad { background: linear-gradient(90deg, var(--accent), #b05bff); -webkit-background-clip: text;
+    background-clip: text; color: transparent; }
+  .hero p.lead { font-size: clamp(17px, 2.2vw, 20px); color: var(--muted); max-width: 680px; margin: 0 auto 28px; }
+  .pills { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 28px; }
+  .pill { font-size: 13px; padding: 4px 12px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); }
+  .cta { display: inline-flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+  .btn { display: inline-block; padding: 11px 20px; border-radius: 10px; font-weight: 600; }
+  .btn.primary { background: var(--accent); color: #fff; }
+  .btn.ghost { border: 1px solid var(--border); color: var(--text); background: var(--surface); }
+  .btn:hover { text-decoration: none; filter: brightness(1.05); }
+  .shot { margin: 48px auto 0; max-width: 900px; border-radius: var(--radius); overflow: hidden;
+    border: 1px solid var(--border); box-shadow: var(--shadow); }
+  .shot img { display: block; width: 100%; height: auto; }
+
+  section { padding: 56px 0; }
+  section h2 { font-size: 30px; letter-spacing: -.01em; margin: 0 0 8px; }
+  section p.sub { color: var(--muted); margin: 0 0 28px; max-width: 720px; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
+  .card .icon { font-size: 26px; }
+  .card h3 { margin: 8px 0 6px; font-size: 17px; }
+  .card p { margin: 0; color: var(--muted); font-size: 15px; }
+
+  .steps { counter-reset: step; display: grid; gap: 14px; }
+  .step { position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 18px 20px 18px 64px; }
+  .step::before { counter-increment: step; content: counter(step); position: absolute; left: 20px; top: 18px;
+    width: 30px; height: 30px; border-radius: 50%; background: var(--accent); color: #fff; font-weight: 700;
+    display: grid; place-items: center; font-size: 14px; }
+  .step h3 { margin: 2px 0 6px; font-size: 17px; }
+  .step p { margin: 0; color: var(--muted); }
+  .code { position: relative; margin-top: 10px; }
+  .code pre { margin: 0; background: var(--code-bg); border-radius: 10px; padding: 14px 16px; overflow-x: auto; }
+  .copy { position: absolute; top: 8px; right: 8px; border: 1px solid var(--border); background: var(--surface);
+    color: var(--muted); border-radius: 8px; font-size: 12px; padding: 3px 8px; cursor: pointer; }
+
+  .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; min-width: 640px; font-size: 15px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); background: var(--code-bg); }
+  tr:last-child td { border-bottom: none; }
+  td:first-child { font-weight: 600; white-space: nowrap; }
+
+  .two { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+  details { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 18px; }
+  details + details { margin-top: 10px; }
+  summary { cursor: pointer; font-weight: 600; }
+  details p, details ul { color: var(--muted); margin: 10px 0 0; }
+  .note { border-left: 3px solid var(--accent); background: var(--accent-soft); padding: 12px 16px; border-radius: 8px; margin-top: 16px; }
+
+  footer { border-top: 1px solid var(--border); padding: 32px 0 48px; color: var(--muted); font-size: 14px; text-align: center; }
+
+  @media (max-width: 640px) {
+    nav { display: none; }
+    header.top .wrap { justify-content: space-between; }
+    .hero { padding-top: 48px; }
+    section { padding: 40px 0; }
+    .step { padding-left: 56px; }
+    .step::before { left: 14px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#">🎮 Gamepad Mouse</a>
+    <nav>
+      <a href="#features"><span lang="en">Features</span><span lang="es">Funciones</span></a>
+      <a href="#install"><span lang="en">Install</span><span lang="es">Instalar</span></a>
+      <a href="#themes"><span lang="en">Themes</span><span lang="es">Temas</span></a>
+      <a href="#touchpad">Touchpad</a>
+      <a href="#how"><span lang="en">How it works</span><span lang="es">Cómo funciona</span></a>
+      <a href="#faq">FAQ</a>
+    </nav>
+    <button class="lang-toggle" id="lang-toggle" type="button" aria-label="Change language">
+      <span lang="en">Español</span><span lang="es">English</span>
+    </button>
+  </div>
+</header>
+
+<main>
+  <div class="hero wrap">
+    <h1><span lang="en">Your PS5 controller,<br><span class="grad">now your Mac's mouse.</span></span><span lang="es">Tu control de PS5,<br><span class="grad">ahora el mouse de tu Mac.</span></span></h1>
+    <p class="lead">
+      <span lang="en">Point, click, scroll, zoom, dictate and switch windows from a controller in your lap. Your wrists and shoulders will thank you.</span>
+      <span lang="es">Apunta, haz clic, scroll, zoom, dicta y cambia de ventana con un control en tu regazo. Tus muñecas y hombros te lo van a agradecer.</span>
+    </p>
+    <div class="pills">
+      <span class="pill">macOS 13+</span><span class="pill">Swift</span><span class="pill">DualSense</span>
+      <span class="pill"><span lang="en">Menu bar app</span><span lang="es">App de barra de menú</span></span>
+      <span class="pill">English · Español</span>
+    </div>
+    <div class="cta">
+      <a class="btn primary" href="#install"><span lang="en">Get started</span><span lang="es">Empezar</span></a>
+      <a class="btn ghost" href="https://github.com/jofer95/gamepad-mouse">GitHub</a>
+    </div>
+    <div class="shot">
+      <img src="images/settings.png" width="900" height="760"
+           alt="The Gamepad Mouse settings window: themes on the left, each controller button and its action on the right">
+    </div>
+  </div>
+
+  <section id="features">
+    <div class="wrap">
+      <h2><span lang="en">Everything a mouse does, and more</span><span lang="es">Todo lo que hace un mouse, y más</span></h2>
+      <p class="sub"><span lang="en">Built for long days of the same moves: dictate a prompt, scroll, click, go back, close, switch.</span><span lang="es">Hecho para días largos de los mismos movimientos: dictar un prompt, scroll, clic, regresar, cerrar, cambiar.</span></p>
+      <div class="grid">
+        <div class="card"><div class="icon">🖱️</div>
+          <h3><span lang="en">Sticks as mouse</span><span lang="es">Sticks como mouse</span></h3>
+          <p><span lang="en">The left stick moves the pointer with acceleration, the right one scrolls. Hold precision mode for small targets.</span><span lang="es">El stick izquierdo mueve el puntero con aceleración y el derecho hace scroll. Mantén el modo precisión para objetivos pequeños.</span></p></div>
+        <div class="card"><div class="icon">⌨️</div>
+          <h3><span lang="en">Any button, any action</span><span lang="es">Cualquier botón, cualquier acción</span></h3>
+          <p><span lang="en">Clicks that drag and double-click, shortcuts that repeat, push-to-talk dictation, Mission Control.</span><span lang="es">Clics que arrastran y hacen doble clic, atajos que se repiten, dictado push-to-talk, Mission Control.</span></p></div>
+        <div class="card"><div class="icon">👆</div>
+          <h3><span lang="en">Touchpad as trackpad</span><span lang="es">Touchpad como trackpad</span></h3>
+          <p><span lang="en">One finger moves the pointer. Two fingers pinch to zoom smoothly, like a Mac trackpad.</span><span lang="es">Un dedo mueve el puntero. Con dos dedos pellizcas para un zoom suave, como en el trackpad de la Mac.</span></p></div>
+        <div class="card"><div class="icon">🎨</div>
+          <h3><span lang="en">Themes</span><span lang="es">Temas</span></h3>
+          <p><span lang="en">Three built-in mappings plus your own, switched from the menu bar or the controller.</span><span lang="es">Tres mapeos predeterminados más los tuyos, y los cambias desde la barra de menú o el control.</span></p></div>
+        <div class="card"><div class="icon">🪟</div>
+          <h3><span lang="en">Visual settings</span><span lang="es">Configuración visual</span></h3>
+          <p><span lang="en">Press a button and its row lights up. Record shortcuts by pressing them.</span><span lang="es">Presiona un botón y su fila se ilumina. Graba atajos presionándolos.</span></p></div>
+        <div class="card"><div class="icon">🔋</div>
+          <h3><span lang="en">Real battery level</span><span lang="es">Batería real</span></h3>
+          <p><span lang="en">Read straight from the controller, since macOS doesn't report it over Bluetooth.</span><span lang="es">Se lee directo del control, porque macOS no la reporta por Bluetooth.</span></p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="install">
+    <div class="wrap">
+      <h2><span lang="en">Install in a minute</span><span lang="es">Instálalo en un minuto</span></h2>
+      <p class="sub"><span lang="en">You need macOS 13 or later and Xcode or its Command Line Tools.</span><span lang="es">Necesitas macOS 13 o posterior y Xcode o sus Command Line Tools.</span></p>
+      <div class="steps">
+        <div class="step">
+          <h3><span lang="en">Build and install</span><span lang="es">Compila e instala</span></h3>
+          <p><span lang="en">The script builds, signs, copies the app to <code>~/Applications</code> and opens it.</span><span lang="es">El script compila, firma, copia la app a <code>~/Applications</code> y la abre.</span></p>
+          <div class="code"><button class="copy" type="button">Copy</button><pre><code>git clone https://github.com/jofer95/gamepad-mouse.git
+cd gamepad-mouse
+./scripts/build-app.sh --install</code></pre></div>
+        </div>
+        <div class="step">
+          <h3><span lang="en">Allow Accessibility</span><span lang="es">Permite Accesibilidad</span></h3>
+          <p><span lang="en">Turn on <b>GamepadMouse</b> in System Settings → Privacy &amp; Security → Accessibility, so it can move the pointer and type.</span><span lang="es">Activa <b>GamepadMouse</b> en Ajustes del Sistema → Privacidad y seguridad → Accesibilidad, para que pueda mover el puntero y teclear.</span></p>
+        </div>
+        <div class="step">
+          <h3><span lang="en">Connect the controller</span><span lang="es">Conecta el control</span></h3>
+          <p><span lang="en">Hold <b>PS + Create</b> until the light blinks and pair it in System Settings → Bluetooth, or plug in a USB-C cable. The light bar turns blue when it's ready.</span><span lang="es">Mantén <b>PS + Create</b> hasta que la luz parpadee y emparéjalo en Ajustes del Sistema → Bluetooth, o conecta un cable USB-C. La barra de luz se pone azul cuando está listo.</span></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="themes">
+    <div class="wrap">
+      <h2><span lang="en">Three themes to start</span><span lang="es">Tres temas para empezar</span></h2>
+      <p class="sub"><span lang="en">A theme is a full button mapping. Copy one and make it yours in Configure Buttons…</span><span lang="es">Un tema es un mapeo completo de los botones. Copia uno y hazlo tuyo en Configurar botones…</span></p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th><span lang="en">Control</span><span lang="es">Control</span></th>
+            <th><span lang="en">A · Classic</span><span lang="es">A · Clásico</span></th>
+            <th><span lang="en">B · Clicks on buttons</span><span lang="es">B · Clics en botones</span></th>
+            <th><span lang="en">C · Touchpad as mouse</span><span lang="es">C · Touchpad como mouse</span></th>
+          </tr></thead>
+          <tbody>
+            <tr><td>✕ / ○</td>
+              <td><span lang="en">Dictate / Close window</span><span lang="es">Dictar / Cerrar ventana</span></td>
+              <td><span lang="en">Left click</span><span lang="es">Clic izquierdo</span></td>
+              <td><span lang="en">Left click</span><span lang="es">Clic izquierdo</span></td></tr>
+            <tr><td>□ / △</td>
+              <td><span lang="en">Precision / Return</span><span lang="es">Precisión / Enter</span></td>
+              <td><span lang="en">Right click</span><span lang="es">Clic derecho</span></td>
+              <td><span lang="en">Right click</span><span lang="es">Clic derecho</span></td></tr>
+            <tr><td><span lang="en">Touchpad click</span><span lang="es">Clic del touchpad</span></td>
+              <td><span lang="en">Left click</span><span lang="es">Clic izquierdo</span></td>
+              <td><span lang="en">Dictate</span><span lang="es">Dictar</span></td>
+              <td><span lang="en">Dictate</span><span lang="es">Dictar</span></td></tr>
+            <tr><td><span lang="en">Touchpad slide</span><span lang="es">Deslizar en el touchpad</span></td>
+              <td>—</td><td>—</td>
+              <td><span lang="en">Pointer, pinch to zoom</span><span lang="es">Puntero, pellizcar para zoom</span></td></tr>
+            <tr><td>Create / Options</td>
+              <td><span lang="en">Escape / Last app</span><span lang="es">Escape / App anterior</span></td>
+              <td><span lang="en">Close window / Return</span><span lang="es">Cerrar ventana / Enter</span></td>
+              <td><span lang="en">Close window / Return</span><span lang="es">Cerrar ventana / Enter</span></td></tr>
+            <tr><td>L1 / R1</td>
+              <td colspan="3"><span lang="en">Back / Forward</span><span lang="es">Atrás / Adelante</span></td></tr>
+            <tr><td>L2 / R2</td>
+              <td><span lang="en">Right / Left click</span><span lang="es">Clic derecho / izquierdo</span></td>
+              <td>—</td><td>—</td></tr>
+            <tr><td>D-pad ↑ / ↓</td>
+              <td><span lang="en">Arrows</span><span lang="es">Flechas</span></td>
+              <td><span lang="en">Mission Control / App windows</span><span lang="es">Mission Control / Ventanas de la app</span></td>
+              <td><span lang="en">Mission Control / App windows</span><span lang="es">Mission Control / Ventanas de la app</span></td></tr>
+            <tr><td>PS</td>
+              <td colspan="3"><span lang="en">Pause / resume</span><span lang="es">Pausar / reanudar</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note">
+        <span lang="en"><b>Dictate</b> holds <code>⇧⌃</code>. Set your dictation app's push-to-talk (Wispr Flow, Superwhisper…) to it, or record your own.</span>
+        <span lang="es"><b>Dictar</b> mantiene <code>⇧⌃</code>. Configúralo como push-to-talk en tu app de dictado (Wispr Flow, Superwhisper…) o graba el tuyo.</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="touchpad">
+    <div class="wrap">
+      <h2><span lang="en">A tiny trackpad in your hands</span><span lang="es">Un trackpad chiquito en tus manos</span></h2>
+      <p class="sub"><span lang="en">Theme C turns the DualSense touchpad into a trackpad.</span><span lang="es">El tema C convierte el touchpad del DualSense en un trackpad.</span></p>
+      <div class="two">
+        <div class="card"><div class="icon">☝️</div>
+          <h3><span lang="en">One finger: pointer</span><span lang="es">Un dedo: puntero</span></h3>
+          <p><span lang="en">Slide slowly for precision, quickly to cross the screen. Putting a finger down never moves the pointer.</span><span lang="es">Desliza lento para precisión y rápido para cruzar la pantalla. Apoyar el dedo nunca mueve el puntero.</span></p></div>
+        <div class="card"><div class="icon">🤏</div>
+          <h3><span lang="en">Two fingers: zoom</span><span lang="es">Dos dedos: zoom</span></h3>
+          <p><span lang="en">Spread to zoom in, pinch to zoom out. Smooth in Safari, Chrome, Preview and Maps; switch to ⌘= / ⌘- steps for Terminal and VS Code.</span><span lang="es">Separa para acercar y junta para alejar. Suave en Safari, Chrome, Vista Previa y Mapas; cambia a pasos con ⌘= / ⌘- para la Terminal y VS Code.</span></p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="how">
+    <div class="wrap">
+      <h2><span lang="en">How it works</span><span lang="es">Cómo funciona</span></h2>
+      <p class="sub"><span lang="en">Plain Swift, no dependencies. Four macOS pieces do the work.</span><span lang="es">Swift puro, sin dependencias. Cuatro piezas de macOS hacen el trabajo.</span></p>
+      <div class="grid">
+        <div class="card"><h3>GameController</h3>
+          <p><span lang="en">Reads sticks and buttons, even while the app is in the background.</span><span lang="es">Lee sticks y botones, aunque la app esté en segundo plano.</span></p></div>
+        <div class="card"><h3>CGEvent</h3>
+          <p><span lang="en">A 120 Hz loop posts mouse, scroll, keyboard and pinch events.</span><span lang="es">Un ciclo a 120 Hz publica eventos de mouse, scroll, teclado y pellizco.</span></p></div>
+        <div class="card"><h3>IOKit HID</h3>
+          <p><span lang="en">Reads battery and both touchpad fingers from the DualSense's own reports.</span><span lang="es">Lee la batería y los dos dedos del touchpad de los reportes del DualSense.</span></p></div>
+        <div class="card"><h3>SwiftUI</h3>
+          <p><span lang="en">The settings window, with live button highlighting and shortcut recording.</span><span lang="es">La ventana de configuración, con botones que se iluminan y grabación de atajos.</span></p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="faq">
+    <div class="wrap">
+      <h2><span lang="en">Troubleshooting</span><span lang="es">Solución de problemas</span></h2>
+      <p class="sub"></p>
+      <details>
+        <summary><span lang="en">macOS says the app "contains malware"</span><span lang="es">macOS dice que la app "contiene malware"</span></summary>
+        <p><span lang="en">It was signed with a revoked certificate. The build script skips those, so rebuild with <code>./scripts/build-app.sh --install</code>, or pick one with <code>SIGN_IDENTITY=&lt;SHA-1&gt;</code>.</span><span lang="es">Se firmó con un certificado revocado. El script los descarta, así que vuelve a compilar con <code>./scripts/build-app.sh --install</code>, o elige uno con <code>SIGN_IDENTITY=&lt;SHA-1&gt;</code>.</span></p>
+      </details>
+      <details>
+        <summary><span lang="en">The controller is connected but nothing moves</span><span lang="es">El control está conectado pero no se mueve nada</span></summary>
+        <p><span lang="en">Check that the menu says <b>Accessibility: allowed</b>, and that mapping isn't paused (orange light bar). Press PS to resume.</span><span lang="es">Revisa que el menú diga <b>Accesibilidad: permitida</b> y que el mapeo no esté en pausa (barra de luz naranja). Presiona PS para reanudar.</span></p>
+      </details>
+      <details>
+        <summary><span lang="en">Accessibility is asked again after every build</span><span lang="es">Pide Accesibilidad otra vez en cada compilación</span></summary>
+        <p><span lang="en">No signing certificate was found, so the build was signed ad-hoc. Sign in to Xcode with an Apple ID (a free one works) or create a self-signed code signing certificate.</span><span lang="es">No se encontró un certificado y se firmó ad-hoc. Inicia sesión en Xcode con un Apple ID (sirve uno gratuito) o crea un certificado de firma autofirmado.</span></p>
+      </details>
+      <details>
+        <summary><span lang="en">Smooth zoom does nothing</span><span lang="es">El zoom suave no hace nada</span></summary>
+        <p><span lang="en">Only apps that take trackpad pinches respond, and it uses undocumented gesture fields. Turn off Smooth zoom to use ⌘= / ⌘- steps.</span><span lang="es">Solo responden las apps que aceptan el pellizco del trackpad, y usa campos de gestos no documentados. Desactiva el zoom suave para usar pasos con ⌘= / ⌘-.</span></p>
+      </details>
+      <details>
+        <summary><span lang="en">Can I use the controller's microphone?</span><span lang="es">¿Puedo usar el micrófono del control?</span></summary>
+        <p><span lang="en">Yes, over a USB-C cable only. Pick "DualSense Wireless Controller" as the input in your dictation app.</span><span lang="es">Sí, pero solo con cable USB-C. Elige "DualSense Wireless Controller" como entrada en tu app de dictado.</span></p>
+      </details>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span lang="en">Made for long days at the Mac. Issues and pull requests welcome on</span>
+    <span lang="es">Hecho para días largos frente a la Mac. Issues y pull requests bienvenidos en</span>
+    <a href="https://github.com/jofer95/gamepad-mouse">GitHub</a>.
+  </div>
+</footer>
+
+<script>
+  (function () {
+    var root = document.documentElement;
+    function setLang(lang) {
+      root.setAttribute("data-lang", lang);
+      root.setAttribute("lang", lang);
+      try { localStorage.setItem("gm-lang", lang); } catch (e) {}
+      document.querySelectorAll(".copy").forEach(function (b) { b.textContent = lang === "es" ? "Copiar" : "Copy"; });
+    }
+    var saved = null;
+    try { saved = localStorage.getItem("gm-lang"); } catch (e) {}
+    setLang(saved || ((navigator.language || "en").toLowerCase().indexOf("es") === 0 ? "es" : "en"));
+    document.getElementById("lang-toggle").addEventListener("click", function () {
+      setLang(root.getAttribute("data-lang") === "es" ? "en" : "es");
+    });
+    document.querySelectorAll(".copy").forEach(function (button) {
+      button.addEventListener("click", function () {
+        var text = button.parentElement.querySelector("code").innerText;
+        navigator.clipboard.writeText(text).then(function () {
+          var es = root.getAttribute("data-lang") === "es";
+          button.textContent = es ? "¡Copiado!" : "Copied!";
+          setTimeout(function () { button.textContent = es ? "Copiar" : "Copy"; }, 1500);
+        });
+      });
+    });
+  })();
+</script>
+</body>
+</html>

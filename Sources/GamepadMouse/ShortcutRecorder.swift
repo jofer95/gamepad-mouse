@@ -21,7 +21,8 @@ struct ShortcutRecorder: View {
                 .foregroundStyle(recording ? Color.accentColor : (isEmpty ? .secondary : .primary))
         }
         .help(allowModifiersOnly
-              ? tr("Click, then press the keys to hold, like ⇧⌃ for Wispr Flow", "Haz clic y presiona las teclas a mantener, por ejemplo ⇧⌃ para Wispr Flow")
+              ? tr("Click, then press the keys to hold, like your dictation app's push-to-talk (⇧⌃)",
+                   "Haz clic y presiona las teclas a mantener, como el push-to-talk de tu app de dictado (⇧⌃)")
               : tr("Click, then press the shortcut", "Haz clic y presiona el atajo"))
         .onDisappear(perform: stop)
     }

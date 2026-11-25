@@ -107,7 +107,8 @@ struct Action: Codable, Equatable {
 
     static func of(_ type: ActionType) -> Action { Action(type: type) }
 
-    /// Wispr Flow push-to-talk on this Mac: hold Shift + Control.
+    /// Push-to-talk dictation: holds ⇧⌃ while the button is held. Set your dictation app
+    /// (Wispr Flow, Superwhisper…) to that shortcut, or record yours in the settings window.
     static let dictate = Action(type: .holdKey, modifiers: ["shift", "ctrl"])
 }
 
@@ -122,7 +123,7 @@ enum TouchpadMode: String, Codable, CaseIterable, Identifiable {
     var title: String {
         switch self {
         case .none: return tr("Nothing", "No hace nada")
-        case .pointer: return tr("Moves the pointer", "Mueve el puntero")
+        case .pointer: return tr("Moves the pointer, pinch to zoom", "Mueve el puntero, pellizca para zoom")
         }
     }
 }
@@ -238,6 +239,10 @@ struct Settings: Codable, Equatable {
     var pointerStick = "left"
     /// Multiplier for the touchpad pointer. Fast swipes are accelerated on top of it.
     var touchpadSpeed = 1.0
+    /// Higher = less finger spread per zoom step.
+    var pinchSensitivity = 1.0
+    /// true = a continuous trackpad pinch; false = ⌘= / ⌘- steps, which more apps accept.
+    var smoothZoom = true
 
     init() {}
 
@@ -254,6 +259,8 @@ struct Settings: Codable, Equatable {
         deadzone = try c.decodeIfPresent(Double.self, forKey: .deadzone) ?? d.deadzone
         pointerStick = try c.decodeIfPresent(String.self, forKey: .pointerStick) ?? d.pointerStick
         touchpadSpeed = try c.decodeIfPresent(Double.self, forKey: .touchpadSpeed) ?? d.touchpadSpeed
+        pinchSensitivity = try c.decodeIfPresent(Double.self, forKey: .pinchSensitivity) ?? d.pinchSensitivity
+        smoothZoom = try c.decodeIfPresent(Bool.self, forKey: .smoothZoom) ?? d.smoothZoom
     }
 }
 

@@ -91,6 +91,31 @@ final class InputSynthesizer {
         event.post(tap: .cghidEventTap)
     }
 
+    // MARK: Pinch
+
+    enum GesturePhase: Int64 {
+        case began = 1, changed = 2, ended = 4
+    }
+
+    /// Posts a trackpad pinch (magnify) event, so apps zoom smoothly as they do with a real
+    /// trackpad. `amount` is the change in magnification since the last event.
+    ///
+    /// There's no public API for this: these are the private gesture fields other input tools
+    /// use (event type 29 = gesture, field 110 = gesture kind, 8 = zoom, field 113 = zoom value,
+    /// field 132 = phase). If a macOS update changes them, the pinch simply does nothing.
+    func magnify(_ amount: Double, phase: GesturePhase) {
+        guard let event = CGEvent(source: nil),
+              let typeField = CGEventField(rawValue: 55),
+              let kindField = CGEventField(rawValue: 110),
+              let valueField = CGEventField(rawValue: 113),
+              let phaseField = CGEventField(rawValue: 132) else { return }
+        event.setIntegerValueField(typeField, value: 29)
+        event.setIntegerValueField(kindField, value: 8)
+        event.setIntegerValueField(phaseField, value: phase.rawValue)
+        event.setDoubleValueField(valueField, value: amount)
+        event.post(tap: .cghidEventTap)
+    }
+
     // MARK: Keyboard
 
     /// Presses and releases `key` with `modifiers` held, like typing a shortcut.

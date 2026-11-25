@@ -31,6 +31,12 @@ final class Engine {
     private var pressed: Set<PadButton> = []
     private var reportedPressed: Set<PadButton> = []
     private var lastTouch: DualSenseHID.Touch?
+    /// Finger spread at the last zoom step, while two fingers are down.
+    private var pinchDistance: Double?
+    /// Set by a pinch until every finger lifts.
+    private var waitingForLift = false
+    /// Whether a smooth pinch gesture has begun and still needs its end.
+    private var pinchGestureActive = false
     /// The action each held button started, so its release matches even if the config changes.
     private var active: [PadButton: Action] = [:]
     private var nextRepeat: [PadButton: CFTimeInterval] = [:]
@@ -90,7 +96,7 @@ final class Engine {
         reportPressed()
 
         guard enabled else {
-            lastTouch = nil
+            resetTouchpad()
             return
         }
         let settings = config.settings
@@ -111,18 +117,90 @@ final class Engine {
         }
 
         if config.activeTheme.touchpadMode == .pointer {
-            moveWithTouchpad(dt: dt, precision: precision)
+            handleTouchpad(dt: dt, precision: precision)
         } else {
+            resetTouchpad()
+        }
+    }
+
+    /// One finger moves the pointer; two fingers zoom by spreading or pinching.
+    private func handleTouchpad(dt: Double, precision: Double) {
+        let touches = controllers.touches
+        switch touches.count {
+        case 0:
+            resetTouchpad()
+        case 1:
+            endPinch()
+            // After a pinch, the finger left on the touchpad shouldn't move the pointer.
+            if waitingForLift { return }
+            moveWithTouchpad(touches[0], dt: dt, precision: precision)
+        default:
             lastTouch = nil
+            waitingForLift = true
+            let distance = hypot(Double(touches[0].x - touches[1].x), Double(touches[0].y - touches[1].y))
+            if config.settings.smoothZoom {
+                zoomSmoothly(to: distance)
+            } else {
+                zoomInSteps(to: distance)
+            }
+        }
+    }
+
+    private func resetTouchpad() {
+        endPinch()
+        lastTouch = nil
+        waitingForLift = false
+    }
+
+    private func endPinch() {
+        if pinchGestureActive {
+            synth.magnify(0, phase: .ended)
+            pinchGestureActive = false
+        }
+        pinchDistance = nil
+    }
+
+    /// Streams a trackpad pinch gesture that follows the fingers, for a continuous zoom.
+    private func zoomSmoothly(to distance: Double) {
+        guard let last = pinchDistance else {
+            pinchDistance = distance
+            return
+        }
+        let change = distance - last
+        // Ignore sensor jitter; small moves add up until they count.
+        guard abs(change) >= 3 else { return }
+        if !pinchGestureActive {
+            synth.magnify(0, phase: .began)
+            pinchGestureActive = true
+        }
+        // Spreading the fingers across about half the touchpad doubles the zoom at the default.
+        synth.magnify(change / 960 * config.settings.pinchSensitivity, phase: .changed)
+        pinchDistance = distance
+    }
+
+    /// Sends one zoom step (⌘= or ⌘-) each time the fingers spread or close by a set distance,
+    /// so a wider pinch zooms more. Works in apps that don't take trackpad pinches.
+    private func zoomInSteps(to distance: Double) {
+        guard let start = pinchDistance else {
+            pinchDistance = distance
+            return
+        }
+        // About a tenth of the touchpad's width per step at the default sensitivity.
+        let step = 200 / max(config.settings.pinchSensitivity, 0.1)
+        if distance - start >= step {
+            if let key = KeyCodes.byName["="] { synth.tap(key: key, modifiers: ["cmd"]) }
+            pinchDistance = distance
+        } else if start - distance >= step {
+            if let key = KeyCodes.byName["-"] { synth.tap(key: key, modifiers: ["cmd"]) }
+            pinchDistance = distance
         }
     }
 
     /// Moves the pointer by how far the finger slid since the last tick, like a trackpad.
     /// A new touch only sets where the finger is, so putting it down never makes the pointer jump.
-    private func moveWithTouchpad(dt: Double, precision: Double) {
-        let touch = controllers.touch
+    private func moveWithTouchpad(_ touch: DualSenseHID.Touch, dt: Double, precision: Double) {
         defer { lastTouch = touch }
-        guard let touch, let last = lastTouch, last.id == touch.id else { return }
+        guard let last = lastTouch, last.id == touch.id else { return }
         let dx = Double(touch.x - last.x)
         let dy = Double(touch.y - last.y)
         guard dx != 0 || dy != 0 else { return }
