@@ -37,10 +37,15 @@ private struct ThemeList: View {
 
             List(selection: selection) {
                 ForEach(store.config.themes) { theme in
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text(theme.displayName)
-                        if theme.isBuiltIn {
-                            Text(tr("Built-in", "Predeterminado")).font(.caption2).foregroundStyle(.secondary)
+                    HStack(spacing: 8) {
+                        Circle()
+                            .fill(Color(theme.lightColor))
+                            .frame(width: 9, height: 9)
+                        VStack(alignment: .leading, spacing: 1) {
+                            Text(theme.displayName)
+                            if theme.isBuiltIn {
+                                Text(tr("Built-in", "Predeterminado")).font(.caption2).foregroundStyle(.secondary)
+                            }
                         }
                     }
                     .tag(theme.id)
@@ -92,6 +97,11 @@ private struct ThemeEditor: View {
                     .textFieldStyle(.roundedBorder)
                     .font(.title3)
                     .frame(maxWidth: 300)
+                ColorPicker(tr("Light", "Luz"), selection: Binding(
+                    get: { Color(store.activeTheme.lightColor) },
+                    set: { store.setThemeColor(LightColor($0)) }), supportsOpacity: false)
+                    .help(tr("The controller's light bar color while this theme is active",
+                             "El color de la barra de luz del control mientras este tema está activo"))
                 Spacer()
                 if store.activeTheme.isBuiltIn {
                     Button(tr("Restore original", "Restaurar original")) { store.restoreActiveTheme() }
@@ -154,6 +164,8 @@ private struct ButtonsForm: View {
                               range: 0.5...2.5, step: 0.1) { String(format: "%.1f×", $0) }
                     SmoothZoomToggle(isOn: Binding(get: { store.config.settings.smoothZoom },
                                                    set: { store.config.settings.smoothZoom = $0 }))
+                    FreezeTouchpadToggle(isOn: Binding(get: { store.config.settings.freezeTouchpadWhileDictating },
+                                                       set: { store.config.settings.freezeTouchpadWhileDictating = $0 }))
                     Text(tr("One finger: slide slowly for precision, quickly to cross the screen. Two fingers: spread to zoom in, pinch to zoom out. Clicking the touchpad is its own button, below.",
                             "Un dedo: desliza lento para precisión y rápido para cruzar la pantalla. Dos dedos: sepáralos para acercar y júntalos para alejar. El clic del touchpad es un botón aparte, abajo."))
                         .font(.caption)
@@ -286,6 +298,7 @@ private struct MovementForm: View {
                 SliderRow(title: tr("Pinch zoom sensitivity", "Sensibilidad del zoom"), value: setting(\.pinchSensitivity),
                           range: 0.5...2.5, step: 0.1) { String(format: "%.1f×", $0) }
                 SmoothZoomToggle(isOn: setting(\.smoothZoom))
+                FreezeTouchpadToggle(isOn: setting(\.freezeTouchpadWhileDictating))
             }
             Section(tr("General", "General")) {
                 SliderRow(title: tr("Precision mode speed", "Velocidad en modo precisión"), value: setting(\.precisionFactor),
@@ -308,8 +321,8 @@ private struct MovementForm: View {
                 Toggle(tr("Invert up and down", "Invertir arriba y abajo"), isOn: setting(\.invertGyroVertical))
             }
             Section(tr("Lock (mute button)", "Candado (botón de mute)")) {
-                Text(tr("Press mute to lock the controller: every other button, stick and the touchpad stop doing anything, and the light bar turns dim red. Press mute again to unlock.",
-                        "Presiona mute para bloquear el control: ningún otro botón, stick ni el touchpad hacen nada, y la barra de luz queda en rojo tenue. Presiona mute otra vez para desbloquear."))
+                Text(tr("Press mute to lock the controller: every other button, stick and the touchpad stop doing anything, and the light bar turns dim white. Press mute again to unlock.",
+                        "Presiona mute para bloquear el control: ningún otro botón, stick ni el touchpad hacen nada, y la barra de luz queda en blanco tenue. Presiona mute otra vez para desbloquear."))
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 Toggle(tr("Hold mute for half a second to unlock", "Mantener mute medio segundo para desbloquear"),
@@ -320,6 +333,17 @@ private struct MovementForm: View {
                         Text(tr("\(Int(minutes)) minutes without use", "\(Int(minutes)) minutos sin usarlo")).tag(minutes)
                     }
                 }
+            }
+            Section(tr("Light bar", "Barra de luz")) {
+                Text(tr("The light bar shows each theme's color (pick it next to the theme's name), orange while paused and dim white while locked.",
+                        "La barra de luz muestra el color de cada tema (escógelo junto al nombre del tema), naranja en pausa y blanco tenue con candado."))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                SliderRow(title: tr("Brightness", "Brillo"), value: setting(\.lightBrightness),
+                          range: 0.1...1, step: 0.05) { "\(Int(($0 * 100).rounded()))%" }
+                Toggle(tr("Breathe red while dictating", "Respirar en rojo mientras dictas"), isOn: setting(\.dictationLight))
+                Toggle(tr("Flash yellow once a minute when the battery is low", "Destellar en amarillo cada minuto con batería baja"),
+                       isOn: setting(\.lowBatteryLight))
             }
             Section {
                 HStack {
@@ -356,6 +380,20 @@ private struct SmoothZoomToggle: View {
     }
 }
 
+private struct FreezeTouchpadToggle: View {
+    @Binding var isOn: Bool
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Toggle(tr("Keep the pointer still while dictating", "Dejar quieto el puntero mientras dictas"), isOn: $isOn)
+            Text(tr("Pressing the touchpad to dictate doesn't move the pointer. The sticks still do.",
+                    "Presionar el touchpad para dictar no mueve el puntero. Los sticks sí lo mueven."))
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+}
+
 private struct SliderRow: View {
     let title: String
     @Binding var value: Double
@@ -373,5 +411,18 @@ private struct SliderRow: View {
                 .foregroundStyle(.secondary)
                 .frame(width: 70, alignment: .trailing)
         }
+    }
+}
+
+private extension Color {
+    init(_ light: LightColor) {
+        self.init(.sRGB, red: light.red, green: light.green, blue: light.blue)
+    }
+}
+
+private extension LightColor {
+    init(_ color: Color) {
+        let rgb = NSColor(color).usingColorSpace(.sRGB) ?? .blue
+        self.init(red: Double(rgb.redComponent), green: Double(rgb.greenComponent), blue: Double(rgb.blueComponent))
     }
 }

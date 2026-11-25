@@ -171,7 +171,10 @@
           <p><span lang="en">Press a button and its row lights up. Record shortcuts by pressing them.</span><span lang="es">Presiona un botón y su fila se ilumina. Graba atajos presionándolos.</span></p></div>
         <div class="card"><div class="icon">🔒</div>
           <h3><span lang="en">Lock on mute</span><span lang="es">Candado en mute</span></h3>
-          <p><span lang="en">Press mute and nothing else does anything until you press it again. Dim red light and a buzz tell you.</span><span lang="es">Presiona mute y nada más hace algo hasta que lo vuelvas a presionar. Una luz roja tenue y una vibración te avisan.</span></p></div>
+          <p><span lang="en">Press mute and nothing else does anything until you press it again. Dim white light and a buzz tell you.</span><span lang="es">Presiona mute y nada más hace algo hasta que lo vuelvas a presionar. Una luz blanca tenue y una vibración te avisan.</span></p></div>
+        <div class="card"><div class="icon">💡</div>
+          <h3><span lang="en">Light bar status</span><span lang="es">Estado en la barra de luz</span></h3>
+          <p><span lang="en">Each theme has its own color. Red breathing while you dictate, orange when paused, a yellow flash when the battery runs low.</span><span lang="es">Cada tema tiene su color. Rojo que respira mientras dictas, naranja en pausa y un destello amarillo con batería baja.</span></p></div>
         <div class="card"><div class="icon">🔋</div>
           <h3><span lang="en">Real battery level</span><span lang="es">Batería real</span></h3>
           <p><span lang="en">Read straight from the controller, since macOS doesn't report it over Bluetooth.</span><span lang="es">Se lee directo del control, porque macOS no la reporta por Bluetooth.</span></p></div>
@@ -197,7 +200,7 @@ cd gamepad-mouse
         </div>
         <div class="step">
           <h3><span lang="en">Connect the controller</span><span lang="es">Conecta el control</span></h3>
-          <p><span lang="en">Pair it over Bluetooth the first time (<a href="#pair">see how</a>), or plug in a USB-C data cable. The light bar turns blue when it's ready.</span><span lang="es">La primera vez, emparéjalo por Bluetooth (<a href="#pair">mira cómo</a>), o conecta un cable USB-C de datos. La barra de luz se pone azul cuando está listo.</span></p>
+          <p><span lang="en">Pair it over Bluetooth the first time (<a href="#pair">see how</a>), or plug in a USB-C data cable. The light bar turns the theme's color when it's ready.</span><span lang="es">La primera vez, emparéjalo por Bluetooth (<a href="#pair">mira cómo</a>), o conecta un cable USB-C de datos. La barra de luz toma el color del tema cuando está listo.</span></p>
         </div>
       </div>
     </div>
@@ -300,7 +303,7 @@ cd gamepad-mouse
           <p><span lang="en">Slide slowly for precision, quickly to cross the screen. Putting a finger down never moves the pointer.</span><span lang="es">Desliza lento para precisión y rápido para cruzar la pantalla. Apoyar el dedo nunca mueve el puntero.</span></p></div>
         <div class="card"><div class="icon">🤏</div>
           <h3><span lang="en">Two fingers: zoom</span><span lang="es">Dos dedos: zoom</span></h3>
-          <p><span lang="en">Spread to zoom in, pinch to zoom out. Smooth in Safari, Chrome, Preview and Maps; switch to ⌘= / ⌘- steps for Terminal and VS Code.</span><span lang="es">Separa para acercar y junta para alejar. Suave en Safari, Chrome, Vista Previa y Mapas; cambia a pasos con ⌘= / ⌘- para la Terminal y VS Code.</span></p></div>
+          <p><span lang="en">Spread to zoom in, pinch to zoom out. Smooth in Safari, Chrome, Preview and Maps; switch to ⌘= / ⌘- steps for Terminal and VS Code. While you dictate, the touchpad keeps the pointer still.</span><span lang="es">Separa para acercar y junta para alejar. Suave en Safari, Chrome, Vista Previa y Mapas; cambia a pasos con ⌘= / ⌘- para la Terminal y VS Code. Mientras dictas, el touchpad deja quieto el puntero.</span></p></div>
       </div>
     </div>
   </section>
@@ -315,7 +318,7 @@ cd gamepad-mouse
         <div class="card"><h3>CGEvent</h3>
           <p><span lang="en">A 120 Hz loop posts mouse, scroll, keyboard and pinch events.</span><span lang="es">Un ciclo a 120 Hz publica eventos de mouse, scroll, teclado y pellizco.</span></p></div>
         <div class="card"><h3>IOKit HID</h3>
-          <p><span lang="en">Reads battery, touchpad fingers, the mute button and the gyroscope from the DualSense's own reports.</span><span lang="es">Lee la batería, los dedos del touchpad, el botón de mute y el giroscopio de los reportes del DualSense.</span></p></div>
+          <p><span lang="en">Reads battery, touchpad fingers, the mute button and the gyroscope from the DualSense's own reports, and sets its light bar directly.</span><span lang="es">Lee la batería, los dedos del touchpad, el botón de mute y el giroscopio de los reportes del DualSense, y le pone el color a la barra de luz directamente.</span></p></div>
         <div class="card"><h3>SwiftUI</h3>
           <p><span lang="en">The settings window, with live button highlighting and shortcut recording.</span><span lang="es">La ventana de configuración, con botones que se iluminan y grabación de atajos.</span></p></div>
       </div>
@@ -332,7 +335,7 @@ cd gamepad-mouse
       </details>
       <details>
         <summary><span lang="en">The controller is connected but nothing moves</span><span lang="es">El control está conectado pero no se mueve nada</span></summary>
-        <p><span lang="en">Check that the menu says <b>Accessibility: allowed</b>, that it isn't locked (dim red light bar: press mute), and that mapping isn't paused (orange light bar: choose Enabled in the menu).</span><span lang="es">Revisa que el menú diga <b>Accesibilidad: permitida</b>, que no esté bloqueado (barra de luz en rojo tenue: presiona mute) y que el mapeo no esté en pausa (barra de luz naranja: elige Activado en el menú).</span></p>
+        <p><span lang="en">Check that the menu says <b>Accessibility: allowed</b>, that it isn't locked (dim white light bar: press mute), and that mapping isn't paused (orange light bar: choose Enabled in the menu).</span><span lang="es">Revisa que el menú diga <b>Accesibilidad: permitida</b>, que no esté bloqueado (barra de luz en blanco tenue: presiona mute) y que el mapeo no esté en pausa (barra de luz naranja: elige Activado en el menú).</span></p>
       </details>
       <details>
         <summary><span lang="en">Accessibility is asked again after every build</span><span lang="es">Pide Accesibilidad otra vez en cada compilación</span></summary>

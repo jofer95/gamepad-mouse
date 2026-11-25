@@ -9,9 +9,18 @@ final class Engine {
     private var lastTick = CACurrentMediaTime()
 
     var config: Config {
-        // Only a mapping change lets go of held buttons: a slider dragged with a
-        // controller click must keep its click while the settings change under it.
-        didSet { if config.activeTheme != oldValue.activeTheme { releaseAll() } }
+        didSet {
+            let old = oldValue.activeTheme, new = config.activeTheme
+            // Only a mapping change lets go of held buttons: a slider or color dragged with a
+            // controller click must keep its click while the settings change under it.
+            if !new.sameMapping(as: old) { releaseAll() }
+            if new.id != old.id {
+                // Blink and buzz, so a theme change is felt without looking at the menu.
+                themeChangedAt = CACurrentMediaTime()
+                controllers.playHaptic(pulses: 1)
+            }
+            updateLight()
+        }
     }
 
     var enabled = true {
@@ -68,6 +77,12 @@ final class Engine {
     /// Last time a button, stick or finger was used, for auto-lock.
     private var lastActivity = CACurrentMediaTime()
 
+    // Light bar animations.
+    private var lastLightUpdate: CFTimeInterval = 0
+    private var themeChangedAt: CFTimeInterval?
+    private var dictationStartedAt: CFTimeInterval?
+    private var lowBatterySince: CFTimeInterval?
+
     init(controllers: ControllerManager, config: Config) {
         self.controllers = controllers
         self.config = config
@@ -81,14 +96,61 @@ final class Engine {
         updateLight()
     }
 
+    /// Sets the light bar for the current state right away.
     func updateLight() {
-        if locked {
-            controllers.setLight(red: 0.25, green: 0.0, blue: 0.0)   // Dim red
-        } else if enabled {
-            controllers.setLight(red: 0.0, green: 0.35, blue: 1.0)   // Blue
+        let now = CACurrentMediaTime()
+        lastLightUpdate = now
+        controllers.setLight(lightColor(now: now))
+    }
+
+    /// Checks the light bar's state about 30 times a second. Only a change is sent to the controller.
+    private func animateLight(now: CFTimeInterval) {
+        guard now - lastLightUpdate >= 1.0 / 30 else { return }
+        lastLightUpdate = now
+        controllers.setLight(lightColor(now: now))
+    }
+
+    /// What the light bar shows: locked dim white, paused orange, dictating a red breath, else the
+    /// theme's color. A theme change blinks it, and a low battery flashes yellow once a minute.
+    private func lightColor(now: CFTimeInterval) -> LightColor {
+        let settings = config.settings
+        let brightness = min(max(settings.lightBrightness, 0.1), 1)
+
+        if settings.lowBatteryLight && controllers.batteryIsLow {
+            let since = lowBatterySince ?? now
+            lowBatterySince = since
+            // Two quick yellow flashes at the start of every minute.
+            let phase = (now - since).truncatingRemainder(dividingBy: 60)
+            if phase < 0.25 || (0.4..<0.65).contains(phase) { return LightColor.yellow.scaled(max(brightness, 0.5)) }
         } else {
-            controllers.setLight(red: 1.0, green: 0.35, blue: 0.0)   // Orange
+            lowBatterySince = nil
         }
+
+        if let changed = themeChangedAt {
+            let elapsed = now - changed
+            if elapsed >= 0.5 {
+                themeChangedAt = nil
+            } else if elapsed < 0.12 || (0.24..<0.36).contains(elapsed) {
+                return .off
+            }
+        }
+
+        // Already dim, so brightness doesn't dim it further into looking switched off.
+        if locked { return .dimWhite }
+        if !enabled { return LightColor.orange.scaled(brightness) }
+
+        if settings.dictationLight && active.values.contains(where: { $0.type == .holdKey }) {
+            // A DualSense takes the light straight, so it can breathe. Through macOS the stream of
+            // writes would jam its controller service, so other controllers stay steady red.
+            guard controllers.canAnimateLight else { return LightColor.red.scaled(brightness) }
+            let start = dictationStartedAt ?? now
+            dictationStartedAt = start
+            // Starts bright, then breathes between full and a fifth of it, every 1.4 seconds.
+            let breath = 0.5 + 0.5 * cos(2 * Double.pi * (now - start) / 1.4)
+            return LightColor.red.scaled((0.2 + 0.8 * breath) * brightness)
+        }
+        dictationStartedAt = nil
+        return config.activeTheme.lightColor.scaled(brightness)
     }
 
     /// A tap on mute locks. Unlocking is a tap too, or a half-second hold with `holdToUnlock`.
@@ -130,6 +192,7 @@ final class Engine {
         }
 
         handleMute(now: now)
+        animateLight(now: now)
         if locked {
             // Track what's held, so a button held through unlocking doesn't fire until pressed again.
             pressed = Set(buttons.filter { $0.value }.map { $0.key })
@@ -185,8 +248,17 @@ final class Engine {
             synth.scroll(dx: horizontal * speed, dy: vertical * speed)
         }
 
+        let dictating = active.values.contains { $0.type == .holdKey }
         if config.activeTheme.touchpadMode == .pointer {
-            handleTouchpad(dt: dt, precision: precision)
+            if dictating && settings.freezeTouchpadWhileDictating {
+                // Pressing the touchpad to dictate rolls the finger a little; keep the pointer
+                // still, and after letting go, until the finger lifts.
+                endPinch()
+                lastTouch = nil
+                waitingForLift = true
+            } else {
+                handleTouchpad(dt: dt, precision: precision)
+            }
         } else {
             resetTouchpad()
         }

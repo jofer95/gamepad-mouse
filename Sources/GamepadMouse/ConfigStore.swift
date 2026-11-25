@@ -43,6 +43,7 @@ final class ConfigStore: ObservableObject {
     func duplicateActiveTheme() {
         var copy = activeTheme
         copy.id = UUID().uuidString
+        copy.color = activeTheme.lightColor
         copy.name = tr("Copy of \(activeTheme.displayName)", "Copia de \(activeTheme.displayName)")
         var updated = config
         updated.themes.append(copy)
@@ -67,6 +68,10 @@ final class ConfigStore: ObservableObject {
 
     func renameActiveTheme(_ name: String) {
         updateActiveTheme { $0.name = name }
+    }
+
+    func setThemeColor(_ color: LightColor) {
+        updateActiveTheme { $0.color = color }
     }
 
     func setTouchpadMode(_ mode: TouchpadMode) {

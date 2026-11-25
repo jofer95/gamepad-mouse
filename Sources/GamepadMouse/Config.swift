@@ -131,6 +131,26 @@ enum TouchpadMode: String, Codable, CaseIterable, Identifiable {
     }
 }
 
+/// A light bar color, each channel in 0...1.
+struct LightColor: Codable, Equatable {
+    var red: Double
+    var green: Double
+    var blue: Double
+
+    static let blue = LightColor(red: 0.0, green: 0.35, blue: 1.0)
+    static let green = LightColor(red: 0.0, green: 1.0, blue: 0.25)
+    static let purple = LightColor(red: 0.6, green: 0.0, blue: 1.0)
+    static let orange = LightColor(red: 1.0, green: 0.35, blue: 0.0)
+    static let red = LightColor(red: 1.0, green: 0.0, blue: 0.0)
+    static let yellow = LightColor(red: 1.0, green: 0.8, blue: 0.0)
+    static let dimWhite = LightColor(red: 0.12, green: 0.12, blue: 0.12)
+    static let off = LightColor(red: 0, green: 0, blue: 0)
+
+    func scaled(_ factor: Double) -> LightColor {
+        LightColor(red: red * factor, green: green * factor, blue: blue * factor)
+    }
+}
+
 /// A named set of button mappings. Pointer and scroll settings are shared by all themes.
 struct Theme: Codable, Equatable, Identifiable {
     var id: String
@@ -138,6 +158,20 @@ struct Theme: Codable, Equatable, Identifiable {
     var buttons: [String: Action]
     /// Missing in themes saved before the touchpad could move the pointer.
     var touchpad: TouchpadMode? = nil
+    /// The light bar color while this theme is active. Missing in themes saved before themes
+    /// had colors, which use their built-in color, or blue.
+    var color: LightColor? = nil
+
+    var lightColor: LightColor {
+        color ?? Theme.builtInColors[id] ?? .blue
+    }
+
+    /// The same mapping, ignoring the name and color, so editing those doesn't let go of held buttons.
+    func sameMapping(as other: Theme) -> Bool {
+        id == other.id && buttons == other.buttons && touchpadMode == other.touchpadMode
+    }
+
+    private static let builtInColors: [String: LightColor] = ["classic": .blue, "b": .green, "c": .purple]
 
     func action(for button: PadButton) -> Action {
         buttons[button.rawValue] ?? .of(.none)
@@ -246,6 +280,9 @@ struct Settings: Codable, Equatable {
     var pinchSensitivity = 1.0
     /// true = a continuous trackpad pinch; false = ⌘= / ⌘- steps, which more apps accept.
     var smoothZoom = true
+    /// While a hold-keys (dictation) button is held, the touchpad doesn't move the pointer, so
+    /// pressing the touchpad to dictate doesn't nudge it.
+    var freezeTouchpadWhileDictating = true
     /// Unlocking takes holding mute for half a second instead of a tap.
     var holdToUnlock = false
     /// Minutes without using the controller before it locks itself. 0 = never.
@@ -257,6 +294,12 @@ struct Settings: Codable, Equatable {
     var gyroHorizontalAxis = "yaw"
     var invertGyroHorizontal = false
     var invertGyroVertical = false
+    /// Light bar brightness, 0.1...1.
+    var lightBrightness = 1.0
+    /// The light bar breathes red while a hold-keys (dictation) button is held.
+    var dictationLight = true
+    /// The light bar flashes yellow once a minute while the battery is low.
+    var lowBatteryLight = true
 
     init() {}
 
@@ -275,12 +318,17 @@ struct Settings: Codable, Equatable {
         touchpadSpeed = try c.decodeIfPresent(Double.self, forKey: .touchpadSpeed) ?? d.touchpadSpeed
         pinchSensitivity = try c.decodeIfPresent(Double.self, forKey: .pinchSensitivity) ?? d.pinchSensitivity
         smoothZoom = try c.decodeIfPresent(Bool.self, forKey: .smoothZoom) ?? d.smoothZoom
+        freezeTouchpadWhileDictating = try c.decodeIfPresent(Bool.self, forKey: .freezeTouchpadWhileDictating)
+            ?? d.freezeTouchpadWhileDictating
         holdToUnlock = try c.decodeIfPresent(Bool.self, forKey: .holdToUnlock) ?? d.holdToUnlock
         autoLockMinutes = try c.decodeIfPresent(Double.self, forKey: .autoLockMinutes) ?? d.autoLockMinutes
         gyroSensitivity = try c.decodeIfPresent(Double.self, forKey: .gyroSensitivity) ?? d.gyroSensitivity
         gyroHorizontalAxis = try c.decodeIfPresent(String.self, forKey: .gyroHorizontalAxis) ?? d.gyroHorizontalAxis
         invertGyroHorizontal = try c.decodeIfPresent(Bool.self, forKey: .invertGyroHorizontal) ?? d.invertGyroHorizontal
         invertGyroVertical = try c.decodeIfPresent(Bool.self, forKey: .invertGyroVertical) ?? d.invertGyroVertical
+        lightBrightness = try c.decodeIfPresent(Double.self, forKey: .lightBrightness) ?? d.lightBrightness
+        dictationLight = try c.decodeIfPresent(Bool.self, forKey: .dictationLight) ?? d.dictationLight
+        lowBatteryLight = try c.decodeIfPresent(Bool.self, forKey: .lowBatteryLight) ?? d.lowBatteryLight
     }
 }
 

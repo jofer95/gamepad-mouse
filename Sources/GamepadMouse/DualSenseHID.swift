@@ -4,7 +4,8 @@ import IOKit.hid
 /// Reads what GameController doesn't give us from the DualSense's own HID input reports:
 /// the battery (GameController reports it as unknown over Bluetooth), the touchpad fingers
 /// with their touch-down and lift, the mute button and the gyroscope. Opens the device shared,
-/// next to GameController.
+/// next to GameController. Also sets the light bar with its own output report, because
+/// GameController's light can stop reaching the controller and stay on one color.
 ///
 /// Layout of the input report data, as in the Linux hid-playstation driver:
 /// - offset 9: third buttons byte (bit 2 = mute)
@@ -34,6 +35,15 @@ final class DualSenseHID {
     private(set) var muteDown = false
     /// Called when the battery reading changes.
     var onBatteryChange: (() -> Void)?
+    /// Called when a DualSense's HID device appears, so its light can be set.
+    var onAttach: (() -> Void)?
+    /// Called, at most once a second, while a Bluetooth DualSense sends only its short report,
+    /// which has no gyroscope, touchpad or battery. Any output report switches it back.
+    var onShortReports: (() -> Void)?
+    private var lastShortReportWake: CFAbsoluteTime = 0
+
+    /// Whether the light bar is set through the HID output report, cheap enough to animate.
+    var canSetLight: Bool { !devices.isEmpty }
 
     /// Rotation speed in degrees per second around the controller's three axes: pitch (tipping
     /// the front up or down), yaw (turning left or right) and roll (tilting like a wheel).
@@ -50,6 +60,11 @@ final class DualSenseHID {
 
     private let manager = IOHIDManagerCreate(kCFAllocatorDefault, IOOptionBits(kIOHIDOptionsTypeNone))
     private var buffers: [ObjectIdentifier: UnsafeMutablePointer<UInt8>] = [:]
+    private var devices: [ObjectIdentifier: IOHIDDevice] = [:]
+    /// Devices whose startup light has been released, so they take colors.
+    private var lightReady: Set<ObjectIdentifier> = []
+    /// The Bluetooth output report's sequence number, 0–15.
+    private var outputSequence: UInt8 = 0
     private static let bufferSize = 128
 
     init() {
@@ -70,7 +85,8 @@ final class DualSenseHID {
             Unmanaged<DualSenseHID>.fromOpaque(context).takeUnretainedValue().detach(device)
         }, context)
 
-        IOHIDManagerScheduleWithRunLoop(manager, CFRunLoopGetMain(), CFRunLoopMode.defaultMode.rawValue)
+        // Common modes, so reports keep coming while the menu bar menu is open or a slider is dragged.
+        IOHIDManagerScheduleWithRunLoop(manager, CFRunLoopGetMain(), CFRunLoopMode.commonModes.rawValue)
         let result = IOHIDManagerOpen(manager, IOOptionBits(kIOHIDOptionsTypeNone))
         if result != kIOReturnSuccess {
             NSLog("GamepadMouse: couldn't open the controller's HID reports: \(String(format: "0x%08x", result))")
@@ -87,16 +103,21 @@ final class DualSenseHID {
         guard buffers[id] == nil else { return }
         let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: Self.bufferSize)
         buffers[id] = buffer
+        devices[id] = device
         let context = Unmanaged.passUnretained(self).toOpaque()
         IOHIDDeviceRegisterInputReportCallback(device, buffer, Self.bufferSize, { context, _, _, _, _, report, length in
             guard let context else { return }
             Unmanaged<DualSenseHID>.fromOpaque(context).takeUnretainedValue()
                 .handle(report: report, length: length)
         }, context)
+        onAttach?()
     }
 
     private func detach(_ device: IOHIDDevice) {
-        buffers.removeValue(forKey: ObjectIdentifier(device))?.deallocate()
+        let id = ObjectIdentifier(device)
+        buffers.removeValue(forKey: id)?.deallocate()
+        devices[id] = nil
+        lightReady.remove(id)
         if buffers.isEmpty {
             touches = []
             muteDown = false
@@ -110,7 +131,16 @@ final class DualSenseHID {
         switch report[0] {
         case 0x31 where length >= 55: base = 2 // Bluetooth: ID, then a tag byte
         case 0x01 where length >= 64: base = 1 // USB
-        default: return // The short Bluetooth report has neither battery nor touch
+        case 0x01:
+            // The short Bluetooth report: buttons and sticks only. The controller falls back to it,
+            // for example after reconnecting, and stays there until the Mac sends it something.
+            let now = CFAbsoluteTimeGetCurrent()
+            if now - lastShortReportWake >= 1 {
+                lastShortReportWake = now
+                onShortReports?()
+            }
+            return
+        default: return
         }
         // Two touch points of 4 bytes each.
         touches = [32, 36].compactMap { Self.decodeTouch(UnsafePointer(report + base + $0)) }
@@ -125,6 +155,66 @@ final class DualSenseHID {
         gyroSum.roll += int16(19)
         gyroSamples += 1
         updateBattery(Self.decodeBattery(report[base + 52]))
+    }
+
+    // MARK: Light bar
+
+    /// Sets the light bar of every connected DualSense. Returns false if there is none.
+    /// The report only flags the light bar, so the controller leaves rumble and the rest alone.
+    @discardableResult
+    func setLight(_ color: LightColor) -> Bool {
+        guard !devices.isEmpty else { return false }
+        func channel(_ value: Double) -> UInt8 { UInt8((min(max(value, 0), 1) * 255).rounded()) }
+        var sent = false
+        for (id, device) in devices {
+            // The common part of the output report, as the Linux hid-playstation driver lays it out.
+            var common = [UInt8](repeating: 0, count: 47)
+            common[1] = 0x04                    // valid_flag1: light bar color
+            if !lightReady.contains(id) {
+                common[38] = 0x02               // valid_flag2: light bar setup
+                common[41] = 0x02               // light bar setup: light out, ends the startup fade
+            }
+            common[44] = channel(color.red)
+            common[45] = channel(color.green)
+            common[46] = channel(color.blue)
+
+            let transport = IOHIDDeviceGetProperty(device, kIOHIDTransportKey as CFString) as? String ?? ""
+            var report: [UInt8]
+            if transport.lowercased().contains("bluetooth") {
+                // Bluetooth: ID 0x31, sequence and tag bytes, the common part, then a CRC-32 over
+                // a 0xA2 seed byte and everything before it.
+                report = [UInt8](repeating: 0, count: 78)
+                report[0] = 0x31
+                report[1] = outputSequence << 4
+                outputSequence = (outputSequence + 1) & 0x0F
+                report[2] = 0x10
+                report.replaceSubrange(3..<50, with: common)
+                let crc = Self.crc32([0xA2] + report[0..<74])
+                for i in 0..<4 { report[74 + i] = UInt8((crc >> (8 * UInt32(i))) & 0xFF) }
+            } else {
+                report = [0x02] + common
+            }
+            let result = IOHIDDeviceSetReport(device, kIOHIDReportTypeOutput, CFIndex(report[0]), report, report.count)
+            if result == kIOReturnSuccess {
+                lightReady.insert(id)
+                sent = true
+            } else {
+                NSLog("GamepadMouse: couldn't set the light bar: \(String(format: "0x%08x", result))")
+            }
+        }
+        return sent
+    }
+
+    private static let crcTable: [UInt32] = (0..<256).map { n -> UInt32 in
+        var c = UInt32(n)
+        for _ in 0..<8 { c = c & 1 != 0 ? 0xEDB8_8320 ^ (c >> 1) : c >> 1 }
+        return c
+    }
+
+    static func crc32<S: Sequence>(_ bytes: S) -> UInt32 where S.Element == UInt8 {
+        var crc: UInt32 = 0xFFFF_FFFF
+        for byte in bytes { crc = crcTable[Int((crc ^ UInt32(byte)) & 0xFF)] ^ (crc >> 8) }
+        return crc ^ 0xFFFF_FFFF
     }
 
     /// The average rotation since the last call, or nil if no report came in since.

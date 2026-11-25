@@ -11,6 +11,9 @@ final class ControllerManager {
 
     init() {
         dualSense.onBatteryChange = { [weak self] in self?.onChange?() }
+        dualSense.onAttach = { [weak self] in self?.resendLight() }
+        // Sending the light again is the output report that wakes the full report back up.
+        dualSense.onShortReports = { [weak self] in self?.resendLight() }
 
         // Without this, macOS only delivers controller input while our app is frontmost,
         // and a menu bar app never is.
@@ -99,14 +102,52 @@ final class ControllerManager {
         }
     }
 
-    func setLight(red: Float, green: Float, blue: Float) {
-        controller?.light?.color = GCColor(red: red, green: green, blue: blue)
+    /// Whether the battery is in its lowest step and not charging.
+    var batteryIsLow: Bool {
+        guard controller != nil else { return false }
+        if let reading = dualSense.battery { return reading.state == .discharging && reading.level < 2 }
+        guard let battery = controller?.battery else { return false }
+        return battery.batteryState == .discharging && battery.batteryLevel < 0.2
+    }
+
+    /// Whether the light bar can follow an animation without flooding macOS.
+    var canAnimateLight: Bool { controller != nil && dualSense.canSetLight }
+
+    private func resendLight() {
+        sentLight = nil
+        onChange?()
+    }
+
+    private var sentLight: LightColor?
+    private weak var sentLightController: GCController?
+
+    /// Sets the light bar, only when the color changes. A DualSense gets it straight through its
+    /// HID output report; GameController's light can stop reaching it and stay on one color.
+    /// Other controllers go through GameController, where every write costs macOS's controller
+    /// service a new object, so a steady stream of them can jam it.
+    func setLight(_ color: LightColor) {
+        guard let controller else { return }
+        if controller === sentLightController, let sent = sentLight,
+           abs(sent.red - color.red) < 0.004, abs(sent.green - color.green) < 0.004, abs(sent.blue - color.blue) < 0.004 {
+            return
+        }
+        if !dualSense.setLight(color) {
+            guard let light = controller.light else { return }
+            light.color = GCColor(red: Float(color.red), green: Float(color.green), blue: Float(color.blue))
+        }
+        sentLight = color
+        sentLightController = controller
     }
 
     private func refresh() {
         let current = controller.flatMap { c in GCController.controllers().contains(c) ? c : nil }
         controller = current ?? GCController.controllers().first { $0.extendedGamepad != nil }
         onChange?()
+        // A write right after connecting can be lost, mostly over Bluetooth: send the light again
+        // once the controller has settled.
+        for delay in [1.0, 3.0] {
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in self?.resendLight() }
+        }
     }
 
     /// The pressed state of every button, read from the current controller.

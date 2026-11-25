@@ -37,10 +37,10 @@ sostienes en el regazo, para que tus muñecas y hombros descansen.
   graban presionándolos.
 - 🔋 **La batería real.** Se lee directo del control, porque macOS no la reporta por Bluetooth.
 - 🔒 **Un candado en el botón de mute.** Presiona mute y nada más hace algo hasta que lo vuelvas a
-  presionar, con la barra de luz en rojo tenue y una vibración para avisarte. También puede bloquearse
+  presionar, con la barra de luz en blanco tenue y una vibración para avisarte. También puede bloquearse
   solo después de un rato.
-- 💡 **Estado en la barra de luz.** Azul con el mapeo activo, naranja en pausa y rojo tenue con el
-  candado.
+- 💡 **Estado en la barra de luz.** Cada tema tiene su color, la luz respira en rojo mientras dictas,
+  se pone naranja en pausa y blanco tenue con el candado, y destella en amarillo con batería baja.
 - 🌎 **Inglés y español.** La app sigue el idioma de tu Mac.
 
 ## Requisitos
@@ -83,7 +83,7 @@ Solo se hace una vez. Después, presionar **PS** lo vuelve a conectar a la Mac.
    aparece en *Dispositivos cercanos*; haz clic en **Conectar**. Si no aparece en un minuto, repite
    el paso 2.
 4. **Listo.** La barra de luz se queda encendida y se prende la luz de jugador debajo del touchpad.
-   Con Gamepad Mouse abierto, la barra de luz se pone azul.
+   Con Gamepad Mouse abierto, la barra de luz toma el color del tema activo (azul, verde o morado).
 
 <details>
 <summary><b>Problemas al emparejar</b></summary>
@@ -142,6 +142,9 @@ En un tema con el touchpad en **Mueve el puntero, pellizca para zoom** (el tema 
   - Desactiva el zoom suave para hacer zoom **por pasos** con `⌘=` / `⌘-`, que funciona en casi
     todas las apps, también en la Terminal y VS Code.
 - El **clic** del touchpad es un botón aparte que puedes asignar a lo que quieras.
+- **Mientras dictas** (el tema C dicta con el clic del touchpad), el touchpad no mueve el puntero,
+  así que presionarlo no lo empuja. Al soltar, el puntero sigue quieto hasta que levantes el dedo. Los
+  sticks sí lo mueven. Lo apagas con **Dejar quieto el puntero mientras dictas**.
 
 ## Puntero con giroscopio
 
@@ -159,7 +162,7 @@ ser puntero con giroscopio: elige **Puntero con giroscopio (mantener)** como su 
 ## Candado
 
 Presiona el botón de **mute** (debajo del logo de PS) para bloquear el control. Ningún otro botón,
-stick ni el touchpad hacen nada, se suelta lo que estuviera presionado, la barra de luz queda en rojo
+stick ni el touchpad hacen nada, se suelta lo que estuviera presionado, la barra de luz queda en blanco
 tenue y el control vibra una vez. Presiona mute otra vez para desbloquear: vibra dos veces y la luz
 regresa. También puedes bloquearlo desde la barra de menú (**Bloquear el control**, `⌘L` con el menú
 abierto).
@@ -167,6 +170,30 @@ abierto).
 En **Configurar botones… → Movimiento → Candado** puedes pedir que haya que mantener mute medio segundo
 para desbloquear, y que el control se bloquee solo después de 2 a 30 minutos sin usarlo. Las dos
 opciones vienen apagadas.
+
+## Barra de luz
+
+La barra de luz alrededor del touchpad te dice qué está haciendo el control sin ver la pantalla:
+
+| Estado | Luz |
+|---|---|
+| Tema A activo | 🔵 Azul |
+| Tema B activo | 🟢 Verde |
+| Tema C activo | 🟣 Morado |
+| Dictando (un botón con *Mantener teclas* presionado) | 🔴 Rojo que respira despacio |
+| En pausa | 🟠 Naranja |
+| Con candado | ⚪ Blanco tenue |
+| Batería baja | 🟡 Dos destellos amarillos cada minuto, sobre el color normal |
+
+Al cambiar de tema la luz parpadea dos veces y el control vibra una vez. Escoge el color de cada tema
+con el selector **Luz** junto a su nombre en **Configurar botones…**; tus temas empiezan con el color
+del tema del que los copiaste. En **Movimiento → Barra de luz** están el brillo y los interruptores
+del respiro del dictado y del aviso de batería baja.
+
+La app manda la luz directo al DualSense con su propio reporte HID, no por macOS, cuya luz puede
+dejar de llegar al control y quedarse en un solo color. Si cierras la app, la luz se queda en su último
+color hasta que el control se apague. Las cinco luces de jugador y la luz del botón de mute se las
+dejamos a macOS.
 
 ## Configurar
 
@@ -216,7 +243,7 @@ uno. El script de compilación ya descarta los certificados revocados, así que 
 <summary><b>El control está conectado pero no se mueve nada</b></summary>
 
 - Revisa que Accesibilidad esté permitida: el menú dice **Accesibilidad: permitida**.
-- Revisa que no esté bloqueado (barra de luz en rojo tenue, 🔒 en la barra de menú): presiona **mute**.
+- Revisa que no esté bloqueado (barra de luz en blanco tenue, 🔒 en la barra de menú): presiona **mute**.
 - Revisa que el mapeo no esté en pausa (barra de luz naranja, ⏸ en la barra de menú): elige
   **Activado** en el menú.
 
@@ -258,8 +285,9 @@ Controller** como entrada en tu app de dictado o en *Ajustes del Sistema → Son
   escuchan esas teclas, como el push-to-talk.
 - **IOKit HID** lee de los reportes del DualSense lo que GameController no da: la batería y los dos
   dedos del touchpad, con el momento exacto en que se apoyan y se levantan, el botón de mute y el
-  giroscopio. El formato coincide con
-  el driver `hid-playstation` de Linux.
+  giroscopio. También le pone el color a la barra de luz con el reporte de salida del DualSense,
+  porque la luz de GameController puede dejar de llegar al control. El formato coincide con el driver
+  `hid-playstation` de Linux.
 - El **zoom suave** publica eventos de gesto de pellizco del trackpad con campos de CGEvent no
   documentados, igual que otras herramientas de entrada para macOS.
 
@@ -268,7 +296,6 @@ El código está en `Sources/GamepadMouse/`; la tabla de archivos está en el
 
 ## Lo que sigue
 
-- Vibración y luz como confirmación de clics, dictado y cambios de tema.
 - Gestos en el touchpad y scroll con dos dedos.
 - Gatillos adaptativos con un punto de clic físico.
 - Temas por app.

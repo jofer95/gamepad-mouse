@@ -37,8 +37,9 @@ so your wrists and shoulders get a break.
 - 🔋 **The real battery level.** Read straight from the controller, since macOS doesn't report it
   over Bluetooth.
 - 🔒 **A lock on the mute button.** Press mute and nothing else does anything until you press it
-  again, with a dim red light bar and a buzz to tell you. It can also lock by itself after a while.
-- 💡 **Light bar status.** Blue while mapping is on, orange while paused, dim red while locked.
+  again, with a dim white light bar and a buzz to tell you. It can also lock by itself after a while.
+- 💡 **Light bar status.** Each theme has its own color, the light breathes red while you dictate,
+  turns orange while paused and dim white while locked, and flashes yellow when the battery runs low.
 - 🌎 **English and Spanish.** The app follows your Mac's language.
 
 ## Requirements
@@ -81,7 +82,7 @@ You only do this once. After that, pressing **PS** reconnects it to the Mac.
    appears under *Nearby Devices*; click **Connect**. If it doesn't show up within a minute, repeat
    step 2.
 4. **Done.** The light bar stays on and the player light under the touchpad lights up. With Gamepad
-   Mouse running, the light bar turns blue.
+   Mouse running, the light bar turns the active theme's color (blue, green or purple).
 
 <details>
 <summary><b>Pairing problems</b></summary>
@@ -139,6 +140,10 @@ With a theme whose touchpad is set to **Moves the pointer, pinch to zoom** (them
   - Turn smooth zoom off to zoom in **steps** with `⌘=` / `⌘-` instead, which works almost everywhere,
     Terminal and VS Code included.
 - **Clicking** the touchpad is a separate button you can map to anything.
+- **While you dictate** (theme C dictates on the touchpad click), the touchpad doesn't move the
+  pointer, so pressing it doesn't nudge the pointer. After you let go, the pointer stays still until
+  you lift your finger. The sticks still move it. Turn this off with **Keep the pointer still while
+  dictating**.
 
 ## Gyro pointer
 
@@ -155,12 +160,36 @@ pick **Gyro pointer (hold)** as its action.
 ## Lock
 
 Press the **mute** button (under the PS logo) to lock the controller. Every other button, both sticks
-and the touchpad stop doing anything, anything held is let go, the light bar turns dim red and the
+and the touchpad stop doing anything, anything held is let go, the light bar turns dim white and the
 controller buzzes once. Press mute again to unlock: two buzzes and the light comes back. You can also
 lock from the menu bar (**Lock Controller**, `⌘L` with the menu open).
 
 In **Configure Buttons… → Movement → Lock** you can require holding mute for half a second to unlock,
 and make the controller lock by itself after 2 to 30 minutes without use. Both are off by default.
+
+## Light bar
+
+The light bar around the touchpad tells you what the controller is doing without looking at the screen:
+
+| State | Light |
+|---|---|
+| Theme A active | 🔵 Blue |
+| Theme B active | 🟢 Green |
+| Theme C active | 🟣 Purple |
+| Dictating (a *Hold keys* button held) | 🔴 Red, breathing slowly |
+| Paused | 🟠 Orange |
+| Locked | ⚪ Dim white |
+| Battery low | 🟡 Two yellow flashes once a minute, over the normal color |
+
+Changing themes blinks the light twice and buzzes once. Pick each theme's color with the **Light**
+color well next to its name in **Configure Buttons…**; your own themes start with the color of the
+theme they were copied from. **Movement → Light bar** has the brightness and turns the dictation
+breath and the low-battery flash on or off.
+
+The app sets the light bar straight through the DualSense's HID output report, not through macOS,
+whose light can stop reaching the controller and leave it on one color. When you quit the app, the
+light stays on its last color until the controller turns off. The five player lights and the mute
+button's light are left to macOS.
 
 ## Configure
 
@@ -238,7 +267,7 @@ a certificate yourself, list them with `security find-identity -v -p codesigning
 <summary><b>The controller is connected but nothing moves</b></summary>
 
 - Check that Accessibility is allowed: the menu shows **Accessibility: allowed**.
-- Check that it isn't locked (dim red light bar, 🔒 in the menu bar): press **mute**.
+- Check that it isn't locked (dim white light bar, 🔒 in the menu bar): press **mute**.
 - Check that mapping isn't paused (orange light bar, ⏸ in the menu bar): choose **Enabled** in the menu.
 
 </details>
@@ -278,8 +307,9 @@ Controller** as the input in your dictation app or in *System Settings → Sound
   modifiers also send each modifier's key event, for apps that watch the modifier keys themselves,
   like push-to-talk.
 - **IOKit HID** reads what GameController doesn't expose from the DualSense's own input reports: the
-  battery, both touchpad fingers with their touch-down and lift, the mute button, and the gyroscope. The byte layout matches the Linux
-  `hid-playstation` driver.
+  battery, both touchpad fingers with their touch-down and lift, the mute button, and the gyroscope. It also sets the light bar with the DualSense's own output
+  report, since GameController's light can stop reaching the controller. The byte layout matches the
+  Linux `hid-playstation` driver.
 - **Smooth zoom** posts trackpad magnify gesture events through undocumented CGEvent fields, the same
   approach other macOS input tools use.
 
@@ -288,7 +318,7 @@ Controller** as the input in your dictation app or in *System Settings → Sound
 | `Engine.swift` | The 120 Hz loop: buttons to actions, sticks and touchpad to pointer, scroll and zoom |
 | `InputSynthesizer.swift` | Posts mouse, scroll, keyboard and pinch events |
 | `ControllerManager.swift` | Controller connection, buttons, sticks, battery text and light bar |
-| `DualSenseHID.swift` | Battery, touchpad fingers, mute button and gyroscope from the DualSense HID reports |
+| `DualSenseHID.swift` | Battery, touchpad fingers, mute button and gyroscope from the DualSense HID reports, and its light bar |
 | `Config.swift` | Buttons, actions, themes and the config file format |
 | `ConfigStore.swift` | The live config: theme and button changes, saving |
 | `SettingsView.swift` · `ShortcutRecorder.swift` | The settings window (SwiftUI) and its shortcut recorder |
@@ -299,7 +329,6 @@ All sources are in `Sources/GamepadMouse/`.
 
 ## Roadmap
 
-- Haptic and light bar feedback for clicks, dictation and theme changes.
 - Touchpad gestures and two-finger scroll.
 - Adaptive triggers with a physical click point.
 - Per-app themes.
