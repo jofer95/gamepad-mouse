@@ -6,8 +6,11 @@ final class ControllerManager {
     private(set) var controller: GCController?
     var onChange: (() -> Void)?
     private var observers: [NSObjectProtocol] = []
+    private let dualSenseBattery = DualSenseBattery()
 
     init() {
+        dualSenseBattery.onChange = { [weak self] in self?.onChange?() }
+
         // Without this, macOS only delivers controller input while our app is frontmost,
         // and a menu bar app never is.
         GCController.shouldMonitorBackgroundEvents = true
@@ -27,12 +30,24 @@ final class ControllerManager {
     var name: String? { controller?.vendorName ?? controller?.productCategory }
 
     var batteryDescription: String? {
-        guard let battery = controller?.battery else { return nil }
+        guard controller != nil else { return nil }
+        // macOS reports the DualSense over Bluetooth as unknown with level 0, which isn't a
+        // reading, so ask the controller itself first.
+        if let reading = dualSenseBattery.reading {
+            switch reading.state {
+            case .charging: return "🔋 \(reading.percent)% (cargando)"
+            case .full: return "🔋 100% (cargada)"
+            case .error: return "🔋 error de carga"
+            case .discharging:
+                return reading.percent <= 15 ? "🪫 \(reading.percent)% (batería baja)" : "🔋 \(reading.percent)%"
+            }
+        }
+        guard let battery = controller?.battery, battery.batteryState != .unknown else { return nil }
         let percent = Int((battery.batteryLevel * 100).rounded())
         switch battery.batteryState {
-        case .charging: return "\(percent)% (charging)"
-        case .full: return "100% (full)"
-        default: return "\(percent)%"
+        case .charging: return "🔋 \(percent)% (cargando)"
+        case .full: return "🔋 100% (cargada)"
+        default: return "🔋 \(percent)%"
         }
     }
 
