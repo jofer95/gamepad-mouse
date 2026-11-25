@@ -1,3 +1,4 @@
+import CoreHaptics
 import Foundation
 import GameController
 
@@ -31,6 +32,38 @@ final class ControllerManager {
 
     /// The fingers on the DualSense touchpad: none, one or two.
     var touches: [DualSenseHID.Touch] { controller == nil ? [] : dualSense.touches }
+
+    /// Whether the DualSense mute button is held.
+    var muteDown: Bool { controller != nil && dualSense.muteDown }
+
+    // MARK: Haptics
+
+    private var hapticEngine: CHHapticEngine?
+    private weak var hapticController: GCController?
+
+    /// Short pulses in the controller, to confirm something without looking at the screen.
+    func playHaptic(pulses: Int) {
+        guard let controller, pulses > 0 else { return }
+        do {
+            if hapticEngine == nil || hapticController !== controller {
+                hapticEngine = controller.haptics?.createEngine(withLocality: .default)
+                hapticController = controller
+                // The engine stops after a while unused; let it, and start it again on demand.
+                hapticEngine?.isAutoShutdownEnabled = true
+            }
+            guard let engine = hapticEngine else { return }
+            try engine.start()
+            let events = (0..<pulses).map { index in
+                CHHapticEvent(eventType: .hapticTransient, parameters: [
+                    CHHapticEventParameter(parameterID: .hapticIntensity, value: 0.9),
+                    CHHapticEventParameter(parameterID: .hapticSharpness, value: 0.6),
+                ], relativeTime: Double(index) * 0.14)
+            }
+            try engine.makePlayer(with: CHHapticPattern(events: events, parameters: [])).start(atTime: CHHapticTimeImmediate)
+        } catch {
+            NSLog("GamepadMouse: couldn't play haptics: \(error)")
+        }
+    }
 
     var batteryDescription: String? {
         guard controller != nil else { return nil }

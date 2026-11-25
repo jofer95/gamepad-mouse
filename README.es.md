@@ -7,7 +7,7 @@ Trabaja con las manos abajo y descansadas, en vez de estirarlas al mouse y al te
 
 macOS 13+ · Swift · DualSense (PS5) · App de barra de menú · English & Español · [Licencia MIT](LICENSE)
 
-[English](README.md) · [Sitio de documentación](docs/index.html)
+[English](README.md) · [Sitio de documentación](https://jofer95.github.io/gamepad-mouse/)
 
 <img src="docs/images/settings.png" alt="La ventana de configuración de Gamepad Mouse: los temas a la izquierda y cada botón del control con su acción a la derecha" width="760">
 
@@ -34,7 +34,11 @@ sostienes en el regazo, para que tus muñecas y hombros descansen.
 - 🪟 **Ventana de configuración.** La fila de cada botón se ilumina al presionarlo, y los atajos se
   graban presionándolos.
 - 🔋 **La batería real.** Se lee directo del control, porque macOS no la reporta por Bluetooth.
-- 💡 **Estado en la barra de luz.** Azul con el mapeo activo y naranja en pausa.
+- 🔒 **Un candado en el botón de mute.** Presiona mute y nada más hace algo hasta que lo vuelvas a
+  presionar, con la barra de luz en rojo tenue y una vibración para avisarte. También puede bloquearse
+  solo después de un rato.
+- 💡 **Estado en la barra de luz.** Azul con el mapeo activo, naranja en pausa y rojo tenue con el
+  candado.
 - 🌎 **Inglés y español.** La app sigue el idioma de tu Mac.
 
 ## Requisitos
@@ -86,9 +90,10 @@ Un tema es un mapeo completo de los botones. Elígelo en la barra de menú (**Te
 | D-pad ↑ / ↓ | Flechas | Mission Control / Ventanas de la app | Mission Control / Ventanas de la app |
 | D-pad ← / → | Flechas | Flechas | Flechas |
 | R3 | Clic central | Clic central | Clic central |
-| PS | Pausar / reanudar | Pausar / reanudar | Pausar / reanudar |
+| PS | — | — | — |
+| 🎙️ Mute | Bloquear / desbloquear | Bloquear / desbloquear | Bloquear / desbloquear |
 
-**Dictar** mantiene `⇧⌃` mientras sostienes el botón. Configura ese atajo como push-to-talk en tu app
+El botón de mute siempre bloquea y desbloquea; no es parte de un tema. **Dictar** mantiene `⇧⌃` mientras sostienes el botón. Configura ese atajo como push-to-talk en tu app
 de dictado (Wispr Flow, Superwhisper, …) o graba el tuyo en la ventana de configuración. Atrás y
 adelante mandan `⌘[` y `⌘]`.
 
@@ -105,6 +110,18 @@ En un tema con el touchpad en **Mueve el puntero, pellizca para zoom** (el tema 
   - Desactiva el zoom suave para hacer zoom **por pasos** con `⌘=` / `⌘-`, que funciona en casi
     todas las apps, también en la Terminal y VS Code.
 - El **clic** del touchpad es un botón aparte que puedes asignar a lo que quieras.
+
+## Candado
+
+Presiona el botón de **mute** (debajo del logo de PS) para bloquear el control. Ningún otro botón,
+stick ni el touchpad hacen nada, se suelta lo que estuviera presionado, la barra de luz queda en rojo
+tenue y el control vibra una vez. Presiona mute otra vez para desbloquear: vibra dos veces y la luz
+regresa. También puedes bloquearlo desde la barra de menú (**Bloquear el control**, `⌘L` con el menú
+abierto).
+
+En **Configurar botones… → Movimiento → Candado** puedes pedir que haya que mantener mute medio segundo
+para desbloquear, y que el control se bloquee solo después de 2 a 30 minutos sin usarlo. Las dos
+opciones vienen apagadas.
 
 ## Configurar
 
@@ -154,8 +171,9 @@ uno. El script de compilación ya descarta los certificados revocados, así que 
 <summary><b>El control está conectado pero no se mueve nada</b></summary>
 
 - Revisa que Accesibilidad esté permitida: el menú dice **Accesibilidad: permitida**.
-- Revisa que el mapeo no esté en pausa: la barra de luz está naranja y el ícono muestra ⏸. Presiona
-  **PS** o elige **Activado** en el menú.
+- Revisa que no esté bloqueado (barra de luz en rojo tenue, 🔒 en la barra de menú): presiona **mute**.
+- Revisa que el mapeo no esté en pausa (barra de luz naranja, ⏸ en la barra de menú): elige
+  **Activado** en el menú.
 
 </details>
 
@@ -194,7 +212,7 @@ Controller** como entrada en tu app de dictado o en *Ajustes del Sistema → Son
   atajos con modificadores también mandan el evento de cada tecla modificadora, para apps que
   escuchan esas teclas, como el push-to-talk.
 - **IOKit HID** lee de los reportes del DualSense lo que GameController no da: la batería y los dos
-  dedos del touchpad, con el momento exacto en que se apoyan y se levantan. El formato coincide con
+  dedos del touchpad, con el momento exacto en que se apoyan y se levantan, y el botón de mute. El formato coincide con
   el driver `hid-playstation` de Linux.
 - El **zoom suave** publica eventos de gesto de pellizco del trackpad con campos de CGEvent no
   documentados, igual que otras herramientas de entrada para macOS.
@@ -206,7 +224,6 @@ El código está en `Sources/GamepadMouse/`; la tabla de archivos está en el
 
 - Puntero con giroscopio: inclina el control para mover el puntero mientras mantienes un botón.
 - Vibración y luz como confirmación de clics, dictado y cambios de tema.
-- El botón de mute como candado que ignora todos los demás botones.
 - Gestos en el touchpad y scroll con dos dedos.
 - Gatillos adaptativos con un punto de clic físico.
 - Temas por app.

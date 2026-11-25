@@ -14,6 +14,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private let controllerItem = NSMenuItem(title: "", action: nil, keyEquivalent: "")
     private let accessibilityItem = NSMenuItem(title: "", action: #selector(openAccessibilitySettings), keyEquivalent: "")
     private let enabledItem = NSMenuItem(title: tr("Enabled", "Activado"), action: #selector(toggleEnabled), keyEquivalent: "e")
+    private let lockItem = NSMenuItem(title: "", action: #selector(toggleLock), keyEquivalent: "l")
     private let themesItem = NSMenuItem(title: tr("Theme", "Tema"), action: nil, keyEquivalent: "")
     private let loginItem = NSMenuItem(title: tr("Open at Login", "Abrir al iniciar sesión"), action: #selector(toggleLoginItem), keyEquivalent: "")
 
@@ -36,6 +37,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             self?.refreshStatus()
         }
         engine.onEnabledChange = { [weak self] in self?.refreshStatus() }
+        engine.onLockChange = { [weak self] in self?.refreshStatus() }
         engine.onPressedChange = { [weak self] pressed in self?.store.setPressed(pressed) }
         engine.onNextTheme = { [weak self] in self?.store.selectNextTheme() }
         controllers.onChange = { [weak self] in
@@ -73,6 +75,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         accessibilityItem.target = self
         menu.addItem(accessibilityItem)
         menu.addItem(.separator())
+        lockItem.target = self
+        menu.addItem(lockItem)
         enabledItem.target = self
         menu.addItem(enabledItem)
         themesItem.submenu = NSMenu()
@@ -125,6 +129,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             : "⚠️ " + tr("Allow Accessibility Access…", "Permitir acceso de Accesibilidad…")
         accessibilityItem.isEnabled = !trusted
         enabledItem.state = engine.enabled ? .on : .off
+        lockItem.title = engine.locked
+            ? "🔒 " + tr("Locked: press mute to unlock", "Bloqueado: presiona mute para desbloquear")
+            : tr("Lock Controller", "Bloquear el control")
         loginItem.state = SMAppService.mainApp.status == .enabled ? .on : .off
         rebuildThemesMenu()
 
@@ -133,6 +140,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             symbol = "exclamationmark.triangle"
         } else if !connected {
             symbol = "gamecontroller"
+        } else if engine.locked {
+            symbol = "lock.fill"
         } else {
             symbol = engine.enabled ? "gamecontroller.fill" : "pause.circle"
         }
@@ -142,6 +151,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     // MARK: Actions
 
     @objc private func toggleEnabled() { engine.enabled.toggle() }
+
+    @objc private func toggleLock() { engine.locked.toggle() }
 
     @objc private func selectTheme(_ sender: NSMenuItem) {
         if let id = sender.representedObject as? String { store.selectTheme(id) }

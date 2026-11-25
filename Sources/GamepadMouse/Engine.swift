@@ -23,7 +23,22 @@ final class Engine {
         }
     }
 
+    /// Locked ignores everything but the mute button, which locks and unlocks. Unlike a pause,
+    /// no mapped button can undo it by accident.
+    var locked = false {
+        didSet {
+            guard locked != oldValue else { return }
+            releaseAll()
+            resetTouchpad()
+            updateLight()
+            controllers.playHaptic(pulses: locked ? 1 : 2)
+            lastActivity = CACurrentMediaTime()
+            onLockChange?()
+        }
+    }
+
     var onEnabledChange: (() -> Void)?
+    var onLockChange: (() -> Void)?
     /// Called with the buttons held whenever that set changes, even while paused.
     var onPressedChange: ((Set<PadButton>) -> Void)?
     var onNextTheme: (() -> Void)?
@@ -44,6 +59,13 @@ final class Engine {
     private let repeatDelay: CFTimeInterval = 0.4
     private let repeatInterval: CFTimeInterval = 0.05
 
+    private var muteWasDown = false
+    /// When the mute button went down while locked, for hold-to-unlock.
+    private var muteDownSince: CFTimeInterval?
+    private let holdToUnlockDuration: CFTimeInterval = 0.5
+    /// Last time a button, stick or finger was used, for auto-lock.
+    private var lastActivity = CACurrentMediaTime()
+
     init(controllers: ControllerManager, config: Config) {
         self.controllers = controllers
         self.config = config
@@ -58,10 +80,34 @@ final class Engine {
     }
 
     func updateLight() {
-        if enabled {
-            controllers.setLight(red: 0.0, green: 0.35, blue: 1.0)
+        if locked {
+            controllers.setLight(red: 0.25, green: 0.0, blue: 0.0)   // Dim red
+        } else if enabled {
+            controllers.setLight(red: 0.0, green: 0.35, blue: 1.0)   // Blue
         } else {
-            controllers.setLight(red: 1.0, green: 0.35, blue: 0.0)
+            controllers.setLight(red: 1.0, green: 0.35, blue: 0.0)   // Orange
+        }
+    }
+
+    /// A tap on mute locks. Unlocking is a tap too, or a half-second hold with `holdToUnlock`.
+    private func handleMute(now: CFTimeInterval) {
+        let down = controllers.muteDown
+        defer { muteWasDown = down }
+        guard down else {
+            muteDownSince = nil
+            return
+        }
+        if !muteWasDown {
+            if !locked {
+                locked = true
+            } else if config.settings.holdToUnlock {
+                muteDownSince = now
+            } else {
+                locked = false
+            }
+        } else if locked, let since = muteDownSince, now - since >= holdToUnlockDuration {
+            muteDownSince = nil
+            locked = false
         }
     }
 
@@ -71,6 +117,8 @@ final class Engine {
         lastTick = now
 
         guard let buttons = controllers.readButtons(), let sticks = controllers.readSticks() else {
+            // Time without a controller doesn't count toward auto-lock.
+            lastActivity = now
             if !pressed.isEmpty {
                 releaseAll()
                 pressed.removeAll()
@@ -79,11 +127,20 @@ final class Engine {
             return
         }
 
+        handleMute(now: now)
+        if locked {
+            // Track what's held, so a button held through unlocking doesn't fire until pressed again.
+            pressed = Set(buttons.filter { $0.value }.map { $0.key })
+            reportPressed()
+            return
+        }
+
         for button in PadButton.allCases {
             let isDown = buttons[button] ?? false
             let wasDown = pressed.contains(button)
             if isDown && !wasDown {
                 pressed.insert(button)
+                lastActivity = now
                 press(button, now: now)
             } else if !isDown && wasDown {
                 pressed.remove(button)
@@ -94,6 +151,16 @@ final class Engine {
             }
         }
         reportPressed()
+
+        // Auto-lock: sticks out of their dead zone or a finger on the touchpad count as use.
+        if shaped(sticks.left, curve: 1) != nil || shaped(sticks.right, curve: 1) != nil || !controllers.touches.isEmpty {
+            lastActivity = now
+        }
+        let autoLockMinutes = config.settings.autoLockMinutes
+        if autoLockMinutes > 0, now - lastActivity >= autoLockMinutes * 60 {
+            locked = true
+            return
+        }
 
         guard enabled else {
             resetTouchpad()

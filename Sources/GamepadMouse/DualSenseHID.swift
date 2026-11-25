@@ -6,7 +6,7 @@ import IOKit.hid
 /// with its touch-down and lift. Opens the device shared, next to GameController.
 ///
 /// Layout of the input report data, as in the Linux hid-playstation driver:
-/// offsets 32 and 36 = the two touch points (bit 7 of byte 0 set = no finger, low bits = touch
+/// offset 9 = third buttons byte (bit 2 = mute), offsets 32 and 36 = the two touch points (bit 7 of byte 0 set = no finger, low bits = touch
 /// id, then x and y as 12-bit values over 1920 × 1080), offset 52 = status (low nibble =
 /// battery level in tenths, high nibble = charging state).
 final class DualSenseHID {
@@ -27,6 +27,8 @@ final class DualSenseHID {
     private(set) var battery: Battery?
     /// The fingers on the touchpad: none, one or two.
     private(set) var touches: [Touch] = []
+    /// The mute button under the PS logo. macOS doesn't use it, so GameController doesn't report it.
+    private(set) var muteDown = false
     /// Called when the battery reading changes.
     var onBatteryChange: (() -> Void)?
 
@@ -81,6 +83,7 @@ final class DualSenseHID {
         buffers.removeValue(forKey: ObjectIdentifier(device))?.deallocate()
         if buffers.isEmpty {
             touches = []
+            muteDown = false
             updateBattery(nil)
         }
     }
@@ -95,6 +98,8 @@ final class DualSenseHID {
         }
         // Two touch points of 4 bytes each.
         touches = [32, 36].compactMap { Self.decodeTouch(UnsafePointer(report + base + $0)) }
+        // The third buttons byte: bit 0 = PS, bit 1 = touchpad click, bit 2 = mute.
+        muteDown = report[base + 9] & 0x04 != 0
         updateBattery(Self.decodeBattery(report[base + 52]))
     }
 

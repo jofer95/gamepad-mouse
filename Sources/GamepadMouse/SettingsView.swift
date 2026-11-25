@@ -130,6 +130,10 @@ private struct ButtonsForm: View {
                          "Presiona un botón del control y su fila se ilumina aquí."),
                       systemImage: "gamecontroller")
                     .foregroundStyle(.secondary)
+                Label(tr("The mute button locks and unlocks the controller in every theme. Its options are in Movement.",
+                         "El botón de mute bloquea y desbloquea el control en todos los temas. Sus opciones están en Movimiento."),
+                      systemImage: "lock")
+                    .foregroundStyle(.secondary)
             }
             Section(tr("Touchpad", "Touchpad")) {
                 Picker(tr("Sliding a finger", "Al deslizar el dedo"), selection: Binding(
@@ -288,6 +292,20 @@ private struct MovementForm: View {
                           range: 0.1...1, step: 0.05) { "\(Int(($0 * 100).rounded()))%" }
                 SliderRow(title: tr("Stick dead zone", "Zona muerta de los sticks"), value: setting(\.deadzone),
                           range: 0.02...0.4, step: 0.01) { "\(Int(($0 * 100).rounded()))%" }
+            }
+            Section(tr("Lock (mute button)", "Candado (botón de mute)")) {
+                Text(tr("Press mute to lock the controller: every other button, stick and the touchpad stop doing anything, and the light bar turns dim red. Press mute again to unlock.",
+                        "Presiona mute para bloquear el control: ningún otro botón, stick ni el touchpad hacen nada, y la barra de luz queda en rojo tenue. Presiona mute otra vez para desbloquear."))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Toggle(tr("Hold mute for half a second to unlock", "Mantener mute medio segundo para desbloquear"),
+                       isOn: setting(\.holdToUnlock))
+                Picker(tr("Lock by itself after", "Bloquear solo después de"), selection: setting(\.autoLockMinutes)) {
+                    Text(tr("Never", "Nunca")).tag(0.0)
+                    ForEach([2.0, 5, 10, 15, 30], id: \.self) { minutes in
+                        Text(tr("\(Int(minutes)) minutes without use", "\(Int(minutes)) minutos sin usarlo")).tag(minutes)
+                    }
+                }
             }
             Section {
                 HStack {

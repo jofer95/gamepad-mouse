@@ -7,7 +7,7 @@ Work with your hands resting low instead of reaching for the mouse and keyboard 
 
 macOS 13+ · Swift · DualSense (PS5) · Menu bar app · English & Español · [MIT License](LICENSE)
 
-[Español](README.es.md) · [Docs site](docs/index.html)
+[Español](README.es.md) · [Docs site](https://jofer95.github.io/gamepad-mouse/)
 
 <img src="docs/images/settings.png" alt="The Gamepad Mouse settings window: themes on the left, each controller button and its action on the right" width="760">
 
@@ -34,7 +34,9 @@ so your wrists and shoulders get a break.
   by pressing them.
 - 🔋 **The real battery level.** Read straight from the controller, since macOS doesn't report it
   over Bluetooth.
-- 💡 **Light bar status.** Blue while mapping is on, orange while paused.
+- 🔒 **A lock on the mute button.** Press mute and nothing else does anything until you press it
+  again, with a dim red light bar and a buzz to tell you. It can also lock by itself after a while.
+- 💡 **Light bar status.** Blue while mapping is on, orange while paused, dim red while locked.
 - 🌎 **English and Spanish.** The app follows your Mac's language.
 
 ## Requirements
@@ -85,9 +87,10 @@ A theme is a complete button mapping. Pick one from the menu bar (**Theme**) or 
 | D-pad ↑ / ↓ | Arrows | Mission Control / App windows | Mission Control / App windows |
 | D-pad ← / → | Arrows | Arrows | Arrows |
 | R3 | Middle click | Middle click | Middle click |
-| PS | Pause / resume | Pause / resume | Pause / resume |
+| PS | — | — | — |
+| 🎙️ Mute | Lock / unlock | Lock / unlock | Lock / unlock |
 
-**Dictate** holds `⇧⌃` while the button is down. Set your dictation app's push-to-talk (Wispr Flow,
+The mute button always locks and unlocks; it isn't part of a theme. **Dictate** holds `⇧⌃` while the button is down. Set your dictation app's push-to-talk (Wispr Flow,
 Superwhisper, …) to that shortcut, or record your own in the settings window. Back and forward send
 `⌘[` and `⌘]`.
 
@@ -103,6 +106,16 @@ With a theme whose touchpad is set to **Moves the pointer, pinch to zoom** (them
   - Turn smooth zoom off to zoom in **steps** with `⌘=` / `⌘-` instead, which works almost everywhere,
     Terminal and VS Code included.
 - **Clicking** the touchpad is a separate button you can map to anything.
+
+## Lock
+
+Press the **mute** button (under the PS logo) to lock the controller. Every other button, both sticks
+and the touchpad stop doing anything, anything held is let go, the light bar turns dim red and the
+controller buzzes once. Press mute again to unlock: two buzzes and the light comes back. You can also
+lock from the menu bar (**Lock Controller**, `⌘L` with the menu open).
+
+In **Configure Buttons… → Movement → Lock** you can require holding mute for half a second to unlock,
+and make the controller lock by itself after 2 to 30 minutes without use. Both are off by default.
 
 ## Configure
 
@@ -152,7 +165,7 @@ you and keeps the previous settings.
 | `touchpad` | `none` or `pointer` |
 | Modifiers | `cmd` `shift` `option` `ctrl` `fn` |
 | Keys | letters, digits, `return` `tab` `space` `delete` `escape` `up` `down` `left` `right` `home` `end` `pageup` `pagedown` `f1`–`f12`, and `[` `]` `,` `.` `/` `;` `'` `-` `=` `` ` `` `\` |
-| Settings | `pointerMaxSpeed` `pointerCurve` `scrollMaxSpeed` `scrollCurve` `invertScrollVertical` `invertScrollHorizontal` `precisionFactor` `deadzone` `pointerStick` (`left`/`right`) `touchpadSpeed` `pinchSensitivity` `smoothZoom` |
+| Settings | `pointerMaxSpeed` `pointerCurve` `scrollMaxSpeed` `scrollCurve` `invertScrollVertical` `invertScrollHorizontal` `precisionFactor` `deadzone` `pointerStick` (`left`/`right`) `touchpadSpeed` `pinchSensitivity` `smoothZoom` `holdToUnlock` `autoLockMinutes` (0 = never) |
 
 A button left out of a theme does nothing.
 
@@ -180,8 +193,8 @@ a certificate yourself, list them with `security find-identity -v -p codesigning
 <summary><b>The controller is connected but nothing moves</b></summary>
 
 - Check that Accessibility is allowed: the menu shows **Accessibility: allowed**.
-- Check that mapping isn't paused: the light bar is orange and the menu icon shows ⏸ while paused.
-  Press **PS** or choose **Enabled** in the menu.
+- Check that it isn't locked (dim red light bar, 🔒 in the menu bar): press **mute**.
+- Check that mapping isn't paused (orange light bar, ⏸ in the menu bar): choose **Enabled** in the menu.
 
 </details>
 
@@ -220,7 +233,7 @@ Controller** as the input in your dictation app or in *System Settings → Sound
   modifiers also send each modifier's key event, for apps that watch the modifier keys themselves,
   like push-to-talk.
 - **IOKit HID** reads what GameController doesn't expose from the DualSense's own input reports: the
-  battery, and both touchpad fingers with their touch-down and lift. The byte layout matches the Linux
+  battery, both touchpad fingers with their touch-down and lift, and the mute button. The byte layout matches the Linux
   `hid-playstation` driver.
 - **Smooth zoom** posts trackpad magnify gesture events through undocumented CGEvent fields, the same
   approach other macOS input tools use.
@@ -230,7 +243,7 @@ Controller** as the input in your dictation app or in *System Settings → Sound
 | `Engine.swift` | The 120 Hz loop: buttons to actions, sticks and touchpad to pointer, scroll and zoom |
 | `InputSynthesizer.swift` | Posts mouse, scroll, keyboard and pinch events |
 | `ControllerManager.swift` | Controller connection, buttons, sticks, battery text and light bar |
-| `DualSenseHID.swift` | Battery and touchpad fingers from the DualSense HID reports |
+| `DualSenseHID.swift` | Battery, touchpad fingers and the mute button from the DualSense HID reports |
 | `Config.swift` | Buttons, actions, themes and the config file format |
 | `ConfigStore.swift` | The live config: theme and button changes, saving |
 | `SettingsView.swift` · `ShortcutRecorder.swift` | The settings window (SwiftUI) and its shortcut recorder |
@@ -243,7 +256,6 @@ All sources are in `Sources/GamepadMouse/`.
 
 - Gyro pointer: tilt the controller to move the pointer while holding a button.
 - Haptic and light bar feedback for clicks, dictation and theme changes.
-- The mute button as a lock that ignores every other button.
 - Touchpad gestures and two-finger scroll.
 - Adaptive triggers with a physical click point.
 - Per-app themes.

@@ -183,7 +183,7 @@ struct Theme: Codable, Equatable, Identifiable {
             PadButton.touchpad.rawValue: .of(.leftClick),
             PadButton.r3.rawValue: .of(.middleClick),
             PadButton.l3.rawValue: .of(.none),
-            PadButton.ps.rawValue: .of(.toggleEnabled),
+            PadButton.ps.rawValue: .of(.none),   // Free: mute locks and unlocks
         ])
     }
 
@@ -215,7 +215,7 @@ struct Theme: Codable, Equatable, Identifiable {
         PadButton.dpadRight.rawValue: .shortcut("right", repeat: true),
         PadButton.r3.rawValue: .of(.middleClick),
         PadButton.l3.rawValue: .of(.none),
-        PadButton.ps.rawValue: .of(.toggleEnabled),
+        PadButton.ps.rawValue: .of(.none),   // Free: mute locks and unlocks
     ]
 
     static var builtIns: [Theme] { [classic, faceClicks, touchpadMouse] }
@@ -243,6 +243,10 @@ struct Settings: Codable, Equatable {
     var pinchSensitivity = 1.0
     /// true = a continuous trackpad pinch; false = ⌘= / ⌘- steps, which more apps accept.
     var smoothZoom = true
+    /// Unlocking takes holding mute for half a second instead of a tap.
+    var holdToUnlock = false
+    /// Minutes without using the controller before it locks itself. 0 = never.
+    var autoLockMinutes = 0.0
 
     init() {}
 
@@ -261,6 +265,8 @@ struct Settings: Codable, Equatable {
         touchpadSpeed = try c.decodeIfPresent(Double.self, forKey: .touchpadSpeed) ?? d.touchpadSpeed
         pinchSensitivity = try c.decodeIfPresent(Double.self, forKey: .pinchSensitivity) ?? d.pinchSensitivity
         smoothZoom = try c.decodeIfPresent(Bool.self, forKey: .smoothZoom) ?? d.smoothZoom
+        holdToUnlock = try c.decodeIfPresent(Bool.self, forKey: .holdToUnlock) ?? d.holdToUnlock
+        autoLockMinutes = try c.decodeIfPresent(Double.self, forKey: .autoLockMinutes) ?? d.autoLockMinutes
     }
 }
 
