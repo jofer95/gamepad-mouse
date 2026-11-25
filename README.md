@@ -5,7 +5,7 @@
 **Use a PlayStation 5 controller as your Mac's mouse, scroll wheel and keyboard shortcuts.**<br>
 Work with your hands resting low instead of reaching for the mouse and keyboard all day.
 
-macOS 13+ · Swift · DualSense (PS5) · Menu bar app · English & Español
+macOS 13+ · Swift · DualSense (PS5) · Menu bar app · English & Español · [MIT License](LICENSE)
 
 [Español](README.es.md) · [Docs site](docs/index.html)
 
@@ -258,3 +258,7 @@ swift build                      # compile
 ```
 
 Keep every user-facing string in both languages with `tr("English", "Español")`.
+
+## License
+
+[MIT](LICENSE). Use it, change it, share it.

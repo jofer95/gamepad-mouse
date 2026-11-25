@@ -5,7 +5,7 @@
 **Usa un control de PlayStation 5 como mouse, scroll y atajos de teclado en tu Mac.**<br>
 Trabaja con las manos abajo y descansadas, en vez de estirarlas al mouse y al teclado todo el día.
 
-macOS 13+ · Swift · DualSense (PS5) · App de barra de menú · English & Español
+macOS 13+ · Swift · DualSense (PS5) · App de barra de menú · English & Español · [Licencia MIT](LICENSE)
 
 [English](README.md) · [Sitio de documentación](docs/index.html)
 
@@ -221,3 +221,7 @@ swift build                      # compilar
 ```
 
 Escribe cada texto visible en los dos idiomas con `tr("English", "Español")`.
+
+## Licencia
+
+[MIT](LICENSE). Úsalo, cámbialo, compártelo.
