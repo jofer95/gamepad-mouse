@@ -128,6 +128,12 @@ final class Engine {
         case .nextTheme:
             onNextTheme?()
             return
+        case .missionControl:
+            SystemActions.showMissionControl()
+            return
+        case .appWindows:
+            SystemActions.showAppWindows(using: synth)
+            return
         case .leftClick: synth.mouseButton(.left, down: true)
         case .rightClick: synth.mouseButton(.right, down: true)
         case .middleClick: synth.mouseButton(.center, down: true)
@@ -151,7 +157,7 @@ final class Engine {
         case .middleClick: synth.mouseButton(.center, down: false)
         case .holdKey:
             synth.releaseHold(key: action.key.flatMap { KeyCodes.byName[$0.lowercased()] }, modifiers: action.modifiers ?? [])
-        case .shortcut, .precision, .toggleEnabled, .nextTheme, .none:
+        case .shortcut, .precision, .toggleEnabled, .nextTheme, .missionControl, .appWindows, .none:
             break
         }
     }

@@ -45,13 +45,18 @@ Un tema es un mapeo completo de los botones. Vienen dos, y puedes crear los tuyo
 | R2 | Clic izquierdo | Sin acción |
 | L2 | Clic derecho | Sin acción |
 | L1 / R1 | Atrás / Adelante (`⌘[` / `⌘]`) | Atrás / Adelante |
-| D-pad | Flechas (se repiten) | Flechas (se repiten) |
+| D-pad ↑ | Flecha arriba (se repite) | Mission Control: todas las ventanas |
+| D-pad ↓ | Flecha abajo (se repite) | Ventanas de la app al frente |
+| D-pad ← / → | Flechas (se repiten) | Flechas (se repiten) |
 | R3 | Clic central | Clic central |
 | L3 | Sin acción | Sin acción |
 | PS | Pausar / reanudar | Pausar / reanudar |
 
 Los clics se mantienen mientras sostienes el botón, así que también sirven para arrastrar. Dos
 pulsaciones rápidas cuentan como doble clic. Dictar mantiene `⇧⌃`, el push-to-talk de Wispr Flow.
+
+Para cambiar de ventana en B: D-pad ↑ abre Mission Control, mueves el puntero a la ventana y haces
+clic. Si presionas ↑ otra vez, se cierra sin cambiar.
 
 ## Configurar los botones
 
@@ -101,7 +106,7 @@ configuración anterior.
   tema no hace nada.
 - **Acciones (`type`):** `leftClick`, `rightClick`, `middleClick`, `shortcut` (`key` + `modifiers`,
   `repeat` opcional), `holdKey` (mantiene `key` y/o `modifiers`), `precision`, `toggleEnabled`,
-  `nextTheme`, `none`.
+  `nextTheme`, `missionControl`, `appWindows`, `none`.
 - **Modificadores:** `cmd`, `shift`, `option`, `ctrl`, `fn`.
 - **Teclas:** letras, números, `return`, `tab`, `space`, `delete`, `escape`, `up`/`down`/`left`/`right`,
   `home`, `end`, `pageup`, `pagedown`, `f1`–`f12` y signos como `[`, `]`, `,`, `.`, `/`.
@@ -118,6 +123,7 @@ configuración anterior.
 |---|---|
 | `Sources/GamepadMouse/Engine.swift` | Bucle de 120 Hz: botones → acciones, sticks → puntero y scroll |
 | `Sources/GamepadMouse/InputSynthesizer.swift` | Publica los eventos de mouse, scroll y teclado |
+| `Sources/GamepadMouse/SystemActions.swift` | Abre Mission Control y las ventanas de la app |
 | `Sources/GamepadMouse/ControllerManager.swift` | Conexión del control, lectura, batería y luz |
 | `Sources/GamepadMouse/Config.swift` | Botones, acciones, temas A y B, formato del archivo |
 | `Sources/GamepadMouse/ConfigStore.swift` | Config en vivo: cambios de tema y de botones, guardado |

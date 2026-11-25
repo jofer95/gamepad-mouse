@@ -65,6 +65,10 @@ enum ActionType: String, Codable, CaseIterable, Identifiable {
     case holdKey
     /// Slows the pointer and scroll down while held, for small targets.
     case precision
+    /// Shows every open window, to pick one with the pointer.
+    case missionControl
+    /// Shows the windows of the frontmost app.
+    case appWindows
     /// Turns the mapping on and off (it stays listening for this button).
     case toggleEnabled
     /// Switches to the next theme in the list.
@@ -81,6 +85,8 @@ enum ActionType: String, Codable, CaseIterable, Identifiable {
         case .shortcut: return "Atajo de teclado"
         case .holdKey: return "Mantener teclas (dictado)"
         case .precision: return "Modo precisión"
+        case .missionControl: return "Mission Control"
+        case .appWindows: return "Ventanas de la app"
         case .toggleEnabled: return "Pausar / reanudar"
         case .nextTheme: return "Siguiente tema"
         }
@@ -149,8 +155,8 @@ struct Theme: Codable, Equatable, Identifiable {
         PadButton.r2.rawValue: .of(.none),
         PadButton.l1.rawValue: .shortcut("[", ["cmd"]),
         PadButton.r1.rawValue: .shortcut("]", ["cmd"]),
-        PadButton.dpadUp.rawValue: .shortcut("up", repeat: true),
-        PadButton.dpadDown.rawValue: .shortcut("down", repeat: true),
+        PadButton.dpadUp.rawValue: .of(.missionControl),
+        PadButton.dpadDown.rawValue: .of(.appWindows),
         PadButton.dpadLeft.rawValue: .shortcut("left", repeat: true),
         PadButton.dpadRight.rawValue: .shortcut("right", repeat: true),
         PadButton.r3.rawValue: .of(.middleClick),

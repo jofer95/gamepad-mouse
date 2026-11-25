@@ -191,7 +191,18 @@ final class InputSynthesizer {
 
     private func postKey(_ code: CGKeyCode, down: Bool, flags: CGEventFlags) {
         guard let event = CGEvent(keyboardEventSource: source, virtualKey: code, keyDown: down) else { return }
-        event.flags = flags
+        event.flags = flags.union(Self.hardwareFlags(for: code))
         event.post(tap: .cghidEventTap)
+    }
+
+    /// Flags a real keyboard adds on its own: arrows carry fn + numeric pad, and the
+    /// F-keys and navigation keys carry fn. System shortcuts like ⌃↑ only match with them.
+    private static func hardwareFlags(for code: CGKeyCode) -> CGEventFlags {
+        switch code {
+        case 123...126: return [.maskSecondaryFn, .maskNumericPad]
+        case 115, 116, 117, 119, 121: return .maskSecondaryFn
+        case 96...101, 103, 105, 107, 109, 111, 113, 118, 120, 122: return .maskSecondaryFn
+        default: return []
+        }
     }
 }
