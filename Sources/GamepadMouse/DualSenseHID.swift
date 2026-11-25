@@ -2,13 +2,16 @@ import Foundation
 import IOKit.hid
 
 /// Reads what GameController doesn't give us from the DualSense's own HID input reports:
-/// the battery (GameController reports it as unknown over Bluetooth) and the touchpad finger
-/// with its touch-down and lift. Opens the device shared, next to GameController.
+/// the battery (GameController reports it as unknown over Bluetooth), the touchpad fingers
+/// with their touch-down and lift, the mute button and the gyroscope. Opens the device shared,
+/// next to GameController.
 ///
 /// Layout of the input report data, as in the Linux hid-playstation driver:
-/// offset 9 = third buttons byte (bit 2 = mute), offsets 32 and 36 = the two touch points (bit 7 of byte 0 set = no finger, low bits = touch
-/// id, then x and y as 12-bit values over 1920 × 1080), offset 52 = status (low nibble =
-/// battery level in tenths, high nibble = charging state).
+/// - offset 9: third buttons byte (bit 2 = mute)
+/// - offset 15: gyroscope, three little-endian Int16s: pitch, yaw, roll
+/// - offsets 32 and 36: the two touch points (bit 7 of byte 0 set = no finger, low bits = touch
+///   id, then x and y as 12-bit values over 1920 × 1080)
+/// - offset 52: status (low nibble = battery level in tenths, high nibble = charging state)
 final class DualSenseHID {
     struct Battery: Equatable {
         enum State { case discharging, charging, full, error }
@@ -31,6 +34,19 @@ final class DualSenseHID {
     private(set) var muteDown = false
     /// Called when the battery reading changes.
     var onBatteryChange: (() -> Void)?
+
+    /// Rotation speed in degrees per second around the controller's three axes: pitch (tipping
+    /// the front up or down), yaw (turning left or right) and roll (tilting like a wheel).
+    struct Rotation {
+        var pitch: Double
+        var yaw: Double
+        var roll: Double
+    }
+
+    /// Raw gyroscope units per degree per second (about 16 at the DualSense's ±2000 °/s range).
+    private static let gyroUnitsPerDegree = 16.0
+    private var gyroSum = (pitch: 0.0, yaw: 0.0, roll: 0.0)
+    private var gyroSamples = 0
 
     private let manager = IOHIDManagerCreate(kCFAllocatorDefault, IOOptionBits(kIOHIDOptionsTypeNone))
     private var buffers: [ObjectIdentifier: UnsafeMutablePointer<UInt8>] = [:]
@@ -100,7 +116,25 @@ final class DualSenseHID {
         touches = [32, 36].compactMap { Self.decodeTouch(UnsafePointer(report + base + $0)) }
         // The third buttons byte: bit 0 = PS, bit 1 = touchpad click, bit 2 = mute.
         muteDown = report[base + 9] & 0x04 != 0
+        // Reports arrive faster than the engine's ticks, so add them up for an average.
+        func int16(_ offset: Int) -> Double {
+            Double(Int16(bitPattern: UInt16(report[base + offset]) | UInt16(report[base + offset + 1]) << 8))
+        }
+        gyroSum.pitch += int16(15)
+        gyroSum.yaw += int16(17)
+        gyroSum.roll += int16(19)
+        gyroSamples += 1
         updateBattery(Self.decodeBattery(report[base + 52]))
+    }
+
+    /// The average rotation since the last call, or nil if no report came in since.
+    func takeRotation() -> Rotation? {
+        guard gyroSamples > 0 else { return nil }
+        let scale = 1 / (Double(gyroSamples) * Self.gyroUnitsPerDegree)
+        let rotation = Rotation(pitch: gyroSum.pitch * scale, yaw: gyroSum.yaw * scale, roll: gyroSum.roll * scale)
+        gyroSum = (0, 0, 0)
+        gyroSamples = 0
+        return rotation
     }
 
     static func decodeTouch(_ point: UnsafePointer<UInt8>) -> Touch? {

@@ -52,6 +52,8 @@ final class Engine {
     private var waitingForLift = false
     /// Whether a smooth pinch gesture has begun and still needs its end.
     private var pinchGestureActive = false
+    /// The gyroscope's reading at rest, learned while the controller sits still.
+    private var gyroBias = DualSenseHID.Rotation(pitch: 0, yaw: 0, roll: 0)
     /// The action each held button started, so its release matches even if the config changes.
     private var active: [PadButton: Action] = [:]
     private var nextRepeat: [PadButton: CFTimeInterval] = [:]
@@ -188,6 +190,45 @@ final class Engine {
         } else {
             resetTouchpad()
         }
+
+        if let rotation = controllers.takeRotation() {
+            let gyroHeld = active.values.contains { $0.type == .gyroPointer }
+            handleGyro(rotation, held: gyroHeld, dt: dt, precision: precision)
+        }
+    }
+
+    /// While a gyro pointer button is held, turning and tipping the controller moves the pointer
+    /// like a laser pointer: by how fast it turns, so holding it still keeps the pointer still.
+    /// The rest of the time, a resting controller teaches the engine the sensor's drift.
+    private func handleGyro(_ rotation: DualSenseHID.Rotation, held: Bool, dt: Double, precision: Double) {
+        let pitch = rotation.pitch - gyroBias.pitch
+        let yaw = rotation.yaw - gyroBias.yaw
+        let roll = rotation.roll - gyroBias.roll
+
+        guard held else {
+            if abs(pitch) < 4, abs(yaw) < 4, abs(roll) < 4 {
+                gyroBias.pitch += pitch * 0.02
+                gyroBias.yaw += yaw * 0.02
+                gyroBias.roll += roll * 0.02
+            }
+            return
+        }
+
+        // Ignore the hand's natural tremor, a degree and a half per second.
+        func steady(_ value: Double) -> Double { abs(value) < 1.5 ? 0 : value - copysign(1.5, value) }
+        let settings = config.settings
+        let horizontal = steady(settings.gyroHorizontalAxis == "roll" ? roll : yaw)
+        let vertical = steady(pitch)
+        guard horizontal != 0 || vertical != 0 else { return }
+
+        // Slow turns move about 8 pt per degree for precision; quick ones up to 40.
+        let degreesPerSecond = hypot(horizontal, vertical)
+        let pointsPerDegree = (8 + 32 * min(degreesPerSecond / 200, 1)) * settings.gyroSensitivity * precision
+        var dx = -horizontal * pointsPerDegree * dt
+        var dy = -vertical * pointsPerDegree * dt
+        if settings.invertGyroHorizontal { dx = -dx }
+        if settings.invertGyroVertical { dy = -dy }
+        synth.movePointer(dx: dx, dy: dy)
     }
 
     /// One finger moves the pointer; two fingers zoom by spreading or pinching.
@@ -315,7 +356,7 @@ final class Engine {
             if action.repeat == true { nextRepeat[button] = now + repeatDelay }
         case .holdKey:
             synth.hold(key: action.key.flatMap { KeyCodes.byName[$0.lowercased()] }, modifiers: action.modifiers ?? [])
-        case .precision:
+        case .precision, .gyroPointer:
             break
         }
         active[button] = action
@@ -330,7 +371,7 @@ final class Engine {
         case .middleClick: synth.mouseButton(.center, down: false)
         case .holdKey:
             synth.releaseHold(key: action.key.flatMap { KeyCodes.byName[$0.lowercased()] }, modifiers: action.modifiers ?? [])
-        case .shortcut, .precision, .toggleEnabled, .nextTheme, .missionControl, .appWindows, .none:
+        case .shortcut, .precision, .gyroPointer, .toggleEnabled, .nextTheme, .missionControl, .appWindows, .none:
             break
         }
     }

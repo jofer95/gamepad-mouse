@@ -27,6 +27,8 @@ sostienes en el regazo, para que tus muñecas y hombros descansen.
 - ⌨️ **Cualquier botón, cualquier acción.** Clic izquierdo, derecho y central (mantén para arrastrar,
   dos veces rápido para doble clic), atajos de teclado que se repiten, teclas mantenidas para dictar
   con push-to-talk, Mission Control y las ventanas de la app al frente.
+- 🎯 **Puntero con giroscopio.** Mantén L2 y gira el control para mover el puntero como un
+  apuntador láser, para apuntar con precisión sin tocar los sticks.
 - 🎨 **Temas.** Tres mapeos predeterminados y todos los tuyos que quieras, y los cambias desde la
   barra de menú o desde el control.
 - 👆 **Touchpad como trackpad.** Desliza un dedo para mover el puntero. Separa o junta dos dedos para
@@ -115,7 +117,8 @@ Un tema es un mapeo completo de los botones. Elígelo en la barra de menú (**Te
 | Create | Escape | Cerrar ventana `⌘W` | Cerrar ventana `⌘W` |
 | Options | App anterior `⌘Tab` | Enter | Enter |
 | L1 / R1 | Atrás / Adelante | Atrás / Adelante | Atrás / Adelante |
-| L2 / R2 | Clic derecho / izquierdo | — | — |
+| L2 | Clic derecho | Puntero con giroscopio (mantener) | Puntero con giroscopio (mantener) |
+| R2 | Clic izquierdo | — | — |
 | D-pad ↑ / ↓ | Flechas | Mission Control / Ventanas de la app | Mission Control / Ventanas de la app |
 | D-pad ← / → | Flechas | Flechas | Flechas |
 | R3 | Clic central | Clic central | Clic central |
@@ -139,6 +142,19 @@ En un tema con el touchpad en **Mueve el puntero, pellizca para zoom** (el tema 
   - Desactiva el zoom suave para hacer zoom **por pasos** con `⌘=` / `⌘-`, que funciona en casi
     todas las apps, también en la Terminal y VS Code.
 - El **clic** del touchpad es un botón aparte que puedes asignar a lo que quieras.
+
+## Puntero con giroscopio
+
+En los temas B y C, mantén **L2** y gira el control: el puntero lo sigue como un apuntador láser. Se
+mueve según qué tan rápido giras, así que con el control quieto el puntero no se mueve; los giros
+lentos apuntan con precisión y los rápidos cruzan la pantalla. Suelta L2 para mover el control
+libremente; vuelve a presionarlo para seguir desde donde está el puntero, como levantar el mouse de
+la mesa.
+
+En **Configurar botones… → Movimiento → Puntero con giroscopio** puedes ajustar la sensibilidad, elegir
+si izquierda y derecha salen de **girar** el control (como una linterna) o de **ladearlo** (como un
+volante, cómodo con el control en el regazo), e invertir cualquier dirección. Cualquier botón puede
+ser puntero con giroscopio: elige **Puntero con giroscopio (mantener)** como su acción.
 
 ## Candado
 
@@ -241,7 +257,8 @@ Controller** como entrada en tu app de dictado o en *Ajustes del Sistema → Son
   atajos con modificadores también mandan el evento de cada tecla modificadora, para apps que
   escuchan esas teclas, como el push-to-talk.
 - **IOKit HID** lee de los reportes del DualSense lo que GameController no da: la batería y los dos
-  dedos del touchpad, con el momento exacto en que se apoyan y se levantan, y el botón de mute. El formato coincide con
+  dedos del touchpad, con el momento exacto en que se apoyan y se levantan, el botón de mute y el
+  giroscopio. El formato coincide con
   el driver `hid-playstation` de Linux.
 - El **zoom suave** publica eventos de gesto de pellizco del trackpad con campos de CGEvent no
   documentados, igual que otras herramientas de entrada para macOS.
@@ -251,7 +268,6 @@ El código está en `Sources/GamepadMouse/`; la tabla de archivos está en el
 
 ## Lo que sigue
 
-- Puntero con giroscopio: inclina el control para mover el puntero mientras mantienes un botón.
 - Vibración y luz como confirmación de clics, dictado y cambios de tema.
 - Gestos en el touchpad y scroll con dos dedos.
 - Gatillos adaptativos con un punto de clic físico.

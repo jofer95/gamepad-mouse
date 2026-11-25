@@ -67,6 +67,8 @@ enum ActionType: String, Codable, CaseIterable, Identifiable {
     case holdKey
     /// Slows the pointer and scroll down while held, for small targets.
     case precision
+    /// While held, turning and tipping the controller moves the pointer, like a laser pointer.
+    case gyroPointer
     /// Shows every open window, to pick one with the pointer.
     case missionControl
     /// Shows the windows of the frontmost app.
@@ -87,6 +89,7 @@ enum ActionType: String, Codable, CaseIterable, Identifiable {
         case .shortcut: return tr("Keyboard shortcut", "Atajo de teclado")
         case .holdKey: return tr("Hold keys (dictation)", "Mantener teclas (dictado)")
         case .precision: return tr("Precision mode", "Modo precisión")
+        case .gyroPointer: return tr("Gyro pointer (hold)", "Puntero con giroscopio (mantener)")
         case .missionControl: return "Mission Control"
         case .appWindows: return tr("App windows", "Ventanas de la app")
         case .toggleEnabled: return tr("Pause / resume", "Pausar / reanudar")
@@ -205,7 +208,7 @@ struct Theme: Codable, Equatable, Identifiable {
         PadButton.touchpad.rawValue: .dictate,
         PadButton.options.rawValue: .shortcut("return"),
         PadButton.create.rawValue: .shortcut("w", ["cmd"]),      // Close window/tab
-        PadButton.l2.rawValue: .of(.none),
+        PadButton.l2.rawValue: .of(.gyroPointer),
         PadButton.r2.rawValue: .of(.none),
         PadButton.l1.rawValue: .shortcut("[", ["cmd"]),
         PadButton.r1.rawValue: .shortcut("]", ["cmd"]),
@@ -247,6 +250,13 @@ struct Settings: Codable, Equatable {
     var holdToUnlock = false
     /// Minutes without using the controller before it locks itself. 0 = never.
     var autoLockMinutes = 0.0
+    /// Multiplier for the gyro pointer. Quick turns are accelerated on top of it.
+    var gyroSensitivity = 1.0
+    /// `yaw` = turn the controller left and right like a flashlight; `roll` = tilt it like a
+    /// steering wheel, which can be easier with the controller resting in your lap.
+    var gyroHorizontalAxis = "yaw"
+    var invertGyroHorizontal = false
+    var invertGyroVertical = false
 
     init() {}
 
@@ -267,6 +277,10 @@ struct Settings: Codable, Equatable {
         smoothZoom = try c.decodeIfPresent(Bool.self, forKey: .smoothZoom) ?? d.smoothZoom
         holdToUnlock = try c.decodeIfPresent(Bool.self, forKey: .holdToUnlock) ?? d.holdToUnlock
         autoLockMinutes = try c.decodeIfPresent(Double.self, forKey: .autoLockMinutes) ?? d.autoLockMinutes
+        gyroSensitivity = try c.decodeIfPresent(Double.self, forKey: .gyroSensitivity) ?? d.gyroSensitivity
+        gyroHorizontalAxis = try c.decodeIfPresent(String.self, forKey: .gyroHorizontalAxis) ?? d.gyroHorizontalAxis
+        invertGyroHorizontal = try c.decodeIfPresent(Bool.self, forKey: .invertGyroHorizontal) ?? d.invertGyroHorizontal
+        invertGyroVertical = try c.decodeIfPresent(Bool.self, forKey: .invertGyroVertical) ?? d.invertGyroVertical
     }
 }
 

@@ -26,6 +26,8 @@ so your wrists and shoulders get a break.
 - ⌨️ **Any button, any action.** Left, right and middle click (hold to drag, tap twice to
   double-click), keyboard shortcuts with auto-repeat, held keys for push-to-talk dictation, Mission
   Control and the front app's windows.
+- 🎯 **Gyro pointer.** Hold L2 and turn the controller to move the pointer like a laser pointer,
+  for fine aiming without touching the sticks.
 - 🎨 **Themes.** Three built-in mappings and as many of your own as you like, switched from the menu
   bar or from the controller.
 - 👆 **Touchpad as a trackpad.** Slide one finger to move the pointer. Spread or pinch two fingers to
@@ -113,7 +115,8 @@ A theme is a complete button mapping. Pick one from the menu bar (**Theme**) or 
 | Create | Escape | Close window `⌘W` | Close window `⌘W` |
 | Options | Last app `⌘Tab` | Return | Return |
 | L1 / R1 | Back / Forward | Back / Forward | Back / Forward |
-| L2 / R2 | Right / Left click | — | — |
+| L2 | Right click | Gyro pointer (hold) | Gyro pointer (hold) |
+| R2 | Left click | — | — |
 | D-pad ↑ / ↓ | Arrows | Mission Control / App windows | Mission Control / App windows |
 | D-pad ← / → | Arrows | Arrows | Arrows |
 | R3 | Middle click | Middle click | Middle click |
@@ -136,6 +139,18 @@ With a theme whose touchpad is set to **Moves the pointer, pinch to zoom** (them
   - Turn smooth zoom off to zoom in **steps** with `⌘=` / `⌘-` instead, which works almost everywhere,
     Terminal and VS Code included.
 - **Clicking** the touchpad is a separate button you can map to anything.
+
+## Gyro pointer
+
+In themes B and C, hold **L2** and turn the controller: the pointer follows like a laser pointer.
+It moves by how fast you turn, so holding the controller still keeps the pointer still, slow turns
+aim precisely and quick ones cross the screen. Let go of L2 to move the controller freely; press it
+again to pick up where the pointer is, like lifting a mouse off the desk.
+
+In **Configure Buttons… → Movement → Gyro pointer** you can set the sensitivity, choose whether left
+and right come from **turning** the controller (like a flashlight) or **tilting** it (like a steering
+wheel, handy with it in your lap), and invert either direction. Any button can be a gyro pointer:
+pick **Gyro pointer (hold)** as its action.
 
 ## Lock
 
@@ -191,11 +206,11 @@ you and keeps the previous settings.
 | | Values |
 |---|---|
 | Buttons | `cross` `circle` `square` `triangle` `l1` `r1` `l2` `r2` `l3` `r3` `dpadUp` `dpadDown` `dpadLeft` `dpadRight` `options` `create` `ps` `touchpad` |
-| Action `type` | `leftClick` `rightClick` `middleClick` `shortcut` (`key`, `modifiers`, optional `repeat`) `holdKey` (`key` and/or `modifiers`) `precision` `missionControl` `appWindows` `toggleEnabled` `nextTheme` `none` |
+| Action `type` | `leftClick` `rightClick` `middleClick` `shortcut` (`key`, `modifiers`, optional `repeat`) `holdKey` (`key` and/or `modifiers`) `precision` `gyroPointer` `missionControl` `appWindows` `toggleEnabled` `nextTheme` `none` |
 | `touchpad` | `none` or `pointer` |
 | Modifiers | `cmd` `shift` `option` `ctrl` `fn` |
 | Keys | letters, digits, `return` `tab` `space` `delete` `escape` `up` `down` `left` `right` `home` `end` `pageup` `pagedown` `f1`–`f12`, and `[` `]` `,` `.` `/` `;` `'` `-` `=` `` ` `` `\` |
-| Settings | `pointerMaxSpeed` `pointerCurve` `scrollMaxSpeed` `scrollCurve` `invertScrollVertical` `invertScrollHorizontal` `precisionFactor` `deadzone` `pointerStick` (`left`/`right`) `touchpadSpeed` `pinchSensitivity` `smoothZoom` `holdToUnlock` `autoLockMinutes` (0 = never) |
+| Settings | `pointerMaxSpeed` `pointerCurve` `scrollMaxSpeed` `scrollCurve` `invertScrollVertical` `invertScrollHorizontal` `precisionFactor` `deadzone` `pointerStick` (`left`/`right`) `touchpadSpeed` `pinchSensitivity` `smoothZoom` `holdToUnlock` `autoLockMinutes` (0 = never) `gyroSensitivity` `gyroHorizontalAxis` (`yaw`/`roll`) `invertGyroHorizontal` `invertGyroVertical` |
 
 A button left out of a theme does nothing.
 
@@ -263,7 +278,7 @@ Controller** as the input in your dictation app or in *System Settings → Sound
   modifiers also send each modifier's key event, for apps that watch the modifier keys themselves,
   like push-to-talk.
 - **IOKit HID** reads what GameController doesn't expose from the DualSense's own input reports: the
-  battery, both touchpad fingers with their touch-down and lift, and the mute button. The byte layout matches the Linux
+  battery, both touchpad fingers with their touch-down and lift, the mute button, and the gyroscope. The byte layout matches the Linux
   `hid-playstation` driver.
 - **Smooth zoom** posts trackpad magnify gesture events through undocumented CGEvent fields, the same
   approach other macOS input tools use.
@@ -273,7 +288,7 @@ Controller** as the input in your dictation app or in *System Settings → Sound
 | `Engine.swift` | The 120 Hz loop: buttons to actions, sticks and touchpad to pointer, scroll and zoom |
 | `InputSynthesizer.swift` | Posts mouse, scroll, keyboard and pinch events |
 | `ControllerManager.swift` | Controller connection, buttons, sticks, battery text and light bar |
-| `DualSenseHID.swift` | Battery, touchpad fingers and the mute button from the DualSense HID reports |
+| `DualSenseHID.swift` | Battery, touchpad fingers, mute button and gyroscope from the DualSense HID reports |
 | `Config.swift` | Buttons, actions, themes and the config file format |
 | `ConfigStore.swift` | The live config: theme and button changes, saving |
 | `SettingsView.swift` · `ShortcutRecorder.swift` | The settings window (SwiftUI) and its shortcut recorder |
@@ -284,7 +299,6 @@ All sources are in `Sources/GamepadMouse/`.
 
 ## Roadmap
 
-- Gyro pointer: tilt the controller to move the pointer while holding a button.
 - Haptic and light bar feedback for clicks, dictation and theme changes.
 - Touchpad gestures and two-finger scroll.
 - Adaptive triggers with a physical click point.

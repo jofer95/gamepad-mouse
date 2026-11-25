@@ -293,6 +293,20 @@ private struct MovementForm: View {
                 SliderRow(title: tr("Stick dead zone", "Zona muerta de los sticks"), value: setting(\.deadzone),
                           range: 0.02...0.4, step: 0.01) { "\(Int(($0 * 100).rounded()))%" }
             }
+            Section(tr("Gyro pointer", "Puntero con giroscopio")) {
+                Text(tr("While you hold a button set to Gyro pointer (L2 in themes B and C), turning the controller moves the pointer like a laser pointer. Let go to move the controller freely.",
+                        "Mientras mantienes un botón con Puntero con giroscopio (L2 en los temas B y C), girar el control mueve el puntero como un apuntador láser. Suéltalo para mover el control libremente."))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                SliderRow(title: tr("Gyro sensitivity", "Sensibilidad del giroscopio"), value: setting(\.gyroSensitivity),
+                          range: 0.3...3, step: 0.1) { String(format: "%.1f×", $0) }
+                Picker(tr("Left and right", "Izquierda y derecha"), selection: setting(\.gyroHorizontalAxis)) {
+                    Text(tr("Turn it, like a flashlight", "Girarlo, como una linterna")).tag("yaw")
+                    Text(tr("Tilt it, like a steering wheel", "Ladearlo, como un volante")).tag("roll")
+                }
+                Toggle(tr("Invert left and right", "Invertir izquierda y derecha"), isOn: setting(\.invertGyroHorizontal))
+                Toggle(tr("Invert up and down", "Invertir arriba y abajo"), isOn: setting(\.invertGyroVertical))
+            }
             Section(tr("Lock (mute button)", "Candado (botón de mute)")) {
                 Text(tr("Press mute to lock the controller: every other button, stick and the touchpad stop doing anything, and the light bar turns dim red. Press mute again to unlock.",
                         "Presiona mute para bloquear el control: ningún otro botón, stick ni el touchpad hacen nada, y la barra de luz queda en rojo tenue. Presiona mute otra vez para desbloquear."))

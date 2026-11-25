@@ -36,6 +36,9 @@ final class ControllerManager {
     /// Whether the DualSense mute button is held.
     var muteDown: Bool { controller != nil && dualSense.muteDown }
 
+    /// The DualSense's average rotation since the last call, in degrees per second.
+    func takeRotation() -> DualSenseHID.Rotation? { dualSense.takeRotation() }
+
     // MARK: Haptics
 
     private var hapticEngine: CHHapticEngine?

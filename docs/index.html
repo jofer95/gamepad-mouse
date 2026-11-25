@@ -160,6 +160,9 @@
         <div class="card"><div class="icon">👆</div>
           <h3><span lang="en">Touchpad as trackpad</span><span lang="es">Touchpad como trackpad</span></h3>
           <p><span lang="en">One finger moves the pointer. Two fingers pinch to zoom smoothly, like a Mac trackpad.</span><span lang="es">Un dedo mueve el puntero. Con dos dedos pellizcas para un zoom suave, como en el trackpad de la Mac.</span></p></div>
+        <div class="card"><div class="icon">🎯</div>
+          <h3><span lang="en">Gyro pointer</span><span lang="es">Puntero con giroscopio</span></h3>
+          <p><span lang="en">Hold L2 and turn the controller: the pointer follows like a laser pointer, for fine aiming.</span><span lang="es">Mantén L2 y gira el control: el puntero lo sigue como un apuntador láser, para apuntar con precisión.</span></p></div>
         <div class="card"><div class="icon">🎨</div>
           <h3><span lang="en">Themes</span><span lang="es">Temas</span></h3>
           <p><span lang="en">Three built-in mappings plus your own, switched from the menu bar or the controller.</span><span lang="es">Tres mapeos predeterminados más los tuyos, y los cambias desde la barra de menú o el control.</span></p></div>
@@ -264,8 +267,12 @@ cd gamepad-mouse
               <td><span lang="en">Close window / Return</span><span lang="es">Cerrar ventana / Enter</span></td></tr>
             <tr><td>L1 / R1</td>
               <td colspan="3"><span lang="en">Back / Forward</span><span lang="es">Atrás / Adelante</span></td></tr>
-            <tr><td>L2 / R2</td>
-              <td><span lang="en">Right / Left click</span><span lang="es">Clic derecho / izquierdo</span></td>
+            <tr><td>L2</td>
+              <td><span lang="en">Right click</span><span lang="es">Clic derecho</span></td>
+              <td><span lang="en">Gyro pointer (hold)</span><span lang="es">Puntero con giroscopio (mantener)</span></td>
+              <td><span lang="en">Gyro pointer (hold)</span><span lang="es">Puntero con giroscopio (mantener)</span></td></tr>
+            <tr><td>R2</td>
+              <td><span lang="en">Left click</span><span lang="es">Clic izquierdo</span></td>
               <td>—</td><td>—</td></tr>
             <tr><td>D-pad ↑ / ↓</td>
               <td><span lang="en">Arrows</span><span lang="es">Flechas</span></td>
@@ -308,7 +315,7 @@ cd gamepad-mouse
         <div class="card"><h3>CGEvent</h3>
           <p><span lang="en">A 120 Hz loop posts mouse, scroll, keyboard and pinch events.</span><span lang="es">Un ciclo a 120 Hz publica eventos de mouse, scroll, teclado y pellizco.</span></p></div>
         <div class="card"><h3>IOKit HID</h3>
-          <p><span lang="en">Reads battery and both touchpad fingers from the DualSense's own reports.</span><span lang="es">Lee la batería y los dos dedos del touchpad de los reportes del DualSense.</span></p></div>
+          <p><span lang="en">Reads battery, touchpad fingers, the mute button and the gyroscope from the DualSense's own reports.</span><span lang="es">Lee la batería, los dedos del touchpad, el botón de mute y el giroscopio de los reportes del DualSense.</span></p></div>
         <div class="card"><h3>SwiftUI</h3>
           <p><span lang="en">The settings window, with live button highlighting and shortcut recording.</span><span lang="es">La ventana de configuración, con botones que se iluminan y grabación de atajos.</span></p></div>
       </div>
